@@ -1,0 +1,21 @@
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Env files (never commit secrets)
+.env
+.env.*
+
+
+# Logs
+*.log
+
+# Node
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
