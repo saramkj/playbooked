@@ -1,0 +1,9 @@
+﻿{
+  ""name"": ""@playbooked/shared"",
+  ""private"": true,
+  ""type"": ""module"",
+  ""scripts"": {
+    ""lint"": ""eslint ."",
+    ""typecheck"": ""tsc --noEmit""
+  }
+}

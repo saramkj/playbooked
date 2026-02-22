@@ -1,0 +1,11 @@
+﻿{
+  ""name"": ""@playbooked/api"",
+  ""private"": true,
+  ""type"": ""module"",
+  ""scripts"": {
+    ""dev"": ""node src/index.js"",
+    ""lint"": ""eslint ."",
+    ""typecheck"": ""tsc --noEmit"",
+    ""test"": ""echo \""no tests yet\"" ""
+  }
+}
