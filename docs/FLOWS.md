@@ -21,37 +21,44 @@
 ## Response contracts (so FE doesn’t guess)
 
 ### Success Response Contract (canonical)
+
 - **200 OK (list/detail):** `{ data: <object|array>, message?: string }`
 - **201 Created (create trade):** `{ trade_id: string, redirect_url: string, message: string }`
 
 ### API Error Contract (locked)
 
 **Standard fields (all errors)**
+
 - `message: string` (always present, user-safe)
 - `code?: string` (optional internal code)
 
 **422 Unprocessable Entity (validation)**
 Rules:
+
 - `message` is always present.
 - `field_errors` and `gate_errors` can both appear in one response.
 
 Payload may include:
+
 - `field_errors?: { [field: string]: string }`
 - `gate_errors?: Array<{ gate: "G1"|"G2"|"G3"|"G4"|"G5", passed: false, message: string }>`
 - `passed_gate_count?: number` (0–5) when gate_errors present
 
 UI rendering rules:
+
 - Field errors → inline at field + summary at top of form.
 - Gate errors → Gate Panel on Event detail.
 
 **409 Conflict (state conflict)**
+
 - `message: string` (always present)
 - `conflict_type: "planned_trade_exists" | "playbook_locked" | "already_completed" | "duplicate" | "invalid_transition" | "already_exists"`
-Optional:
+  Optional:
 - `planned_trade_id?: string` (when `planned_trade_exists`)
 - `redirect_url?: string`
 
 **401 / 403 / 404**
+
 - **401** Unauthorized: missing/expired session → login flow
 - **403** Forbidden: wrong user / not admin / CSRF fail → access denied or refresh prompt
 - **404** Not Found: resource missing → not found UI
@@ -64,6 +71,7 @@ Optional:
 **Response:** `200 { data: { event, watchlist_item, playbook_summary, planned_trade_id }, message? }`
 
 Where:
+
 - `event`: `{ event_id, user_id, status, event_type, event_datetime_utc, notes? }`
 - `watchlist_item`: `{ watchlist_item_id, ticker, tags_json }`
 - `playbook_summary` (nullable if no playbook):
@@ -72,6 +80,7 @@ Where:
   - string if a planned trade exists for this playbook, else null
 
 UI rule:
+
 - Event detail must rely on `planned_trade_id` from this payload to decide whether to show **Create** vs **View Planned**.
 
 ---
@@ -79,6 +88,7 @@ UI rule:
 ## DB enforcement: one planned trade per playbook (locked method)
 
 **Locked choice: Postgres partial unique index**
+
 - Enforce at DB level:
   - Unique index on `paper_trades(playbook_id)` WHERE `status='planned'`
 - Server still handles conflict gracefully:
@@ -89,6 +99,7 @@ UI rule:
 ## GateAttempt fields: planned-exists branch (locked)
 
 For GateAttempts where `blocked_by_existing_planned_trade=true`:
+
 - `gate_results = null`
 - `passed_gate_count = null`
 - `total_gates = 5`
@@ -117,16 +128,18 @@ These attempts are excluded from `process_score_week` and counted in `planned_co
 **Inputs:** `{ playbook_id: string }`
 
 Server behavior:
-1) Always creates a GateAttempt record per click.
-2) If a planned trade exists:
+
+1. Always creates a GateAttempt record per click.
+2. If a planned trade exists:
    - Create GateAttempt with blocked flag (fields per contract above).
    - Return **409** `conflict_type="planned_trade_exists"` + `planned_trade_id`.
-3) Else evaluate gates G1–G5:
+3. Else evaluate gates G1–G5:
    - If fail: return **422** `gate_errors` + `passed_gate_count`.
-4) Else create planned trade (minimal fields):
+4. Else create planned trade (minimal fields):
    - Return **201** `{ trade_id, redirect_url, message }`.
 
 Client behavior:
+
 - Disable Create button immediately on click.
 - On **409** planned exists, replace with **“View planned trade”**.
 
@@ -141,26 +154,32 @@ Client behavior:
 ## 2) Register/login/logout + session expired handling (401)
 
 ### Register
+
 - `/signup` → submit.
 - Success → `/dashboard`.
 
 Errors:
+
 - **422**: invalid email/password
 - **409** `conflict_type="duplicate"`: “Account already exists. Log in instead.”
 
 ### Login
+
 - `/login` → submit.
 - Success → `/dashboard`.
 
 Errors:
+
 - **401**: “Email or password is incorrect.”
 - **422**: missing fields
 - **403**: CSRF refresh prompt
 
 ### Logout
+
 - Logout → redirect `/`.
 
 ### Session expired
+
 - Any authed API returns **401** → route to `/login` (preserve return_to) with banner “Your session expired…”
 
 ---
@@ -168,13 +187,16 @@ Errors:
 ## 3) Watchlist: add ticker + tags + edit/delete + errors
 
 ### Add ticker
+
 - `/watchlist` → add panel → submit.
 
 Validations:
+
 - ticker regex `^[A-Z0-9.-]{1,10}$`
 - tags: max 10, each ≤ 20 chars, non-empty
 
 Errors:
+
 - **422** `field_errors`
 - **409** `conflict_type="duplicate"`: “That ticker is already in your watchlist.”
 
@@ -183,12 +205,15 @@ Errors:
 ## 4) Events: create from watchlist + upcoming feed + mark completed
 
 ### Create event
+
 - `/events/new?watchlist_item_id=:id` → save.
 
 ### Upcoming feed
+
 - `/events` lists status=upcoming.
 
 ### Mark completed
+
 - `/events/:id` → mark completed.
 - already completed → **409** `conflict_type="already_completed"`.
 
@@ -197,21 +222,25 @@ Errors:
 ## 5) Playbook: create 1:1 + edit + checklist + gate preview + lock behavior
 
 ### Create playbook
+
 - `/events/:id` → “Create playbook”
 - If templates empty: hard-block message.
 - Else template picker → create.
 
 Errors:
+
 - **422** missing template selection
 - **409** `conflict_type="already_exists"`: “Playbook already exists — opening it now.”
 
 ### Edit playbook
+
 - Editable until lock trigger occurs.
 - `key_metrics` caps:
   - max 20 metrics
   - each ≤ 80 chars
 
 ### Lock
+
 - Locks the first time ANY trade for this playbook transitions to OPEN.
 - After locked: playbook edits return **409** `conflict_type="playbook_locked"`.
 
@@ -220,9 +249,11 @@ Errors:
 ## 6) Create Paper Trade attempt (3 branches) + GateAttempt logging
 
 Event detail uses `planned_trade_id` from `GET /api/events/:id`.
+
 - If `planned_trade_id` exists: hide Create, show “View planned trade”.
 
 Branches:
+
 - **422**: `gate_errors` + `passed_gate_count` (GateAttempt logged and scored)
 - **409** planned exists: `planned_trade_id` returned (GateAttempt logged, excluded from score)
 - **201**: returns `trade_id` + `redirect_url` (GateAttempt linked)
@@ -232,10 +263,12 @@ Branches:
 ## 7) PaperTrade lifecycle: planned→open→closed/cancelled + invalid transition
 
 Planned trade creation:
+
 - Created minimal/empty.
 - User completes plan fields on trade detail.
 
 ### Planned → Open (with confirmation)
+
 - User clicks “Mark OPEN”.
 - Show confirm modal:
   - “Opening this trade locks your playbook. Continue?”
@@ -246,13 +279,16 @@ Planned trade creation:
   - If ok → status becomes OPEN and playbook locks.
 
 Invalid transitions:
+
 - Return **409** `conflict_type="invalid_transition"` and no status change.
 
 ### Open → Closed
+
 - Requires `pnl_percent` (-100..1000).
 - Win if `pnl_percent > 0`.
 
 ### Cancel
+
 - planned/open → cancelled requires `cancel_reason`.
 
 ---
@@ -260,13 +296,16 @@ Invalid transitions:
 ## 8) Dashboard weekly stats: empty states + refresh correctness
 
 Dashboard shows This week (UTC) stats:
+
 - `process_score_week` (excludes planned_conflicts)
 - `planned_conflicts_this_week`
 - `closed_trade_count`, `win_rate`, `avg_pnl`
 
 Empty:
+
 - No scored attempts: `process_score_week` N/A
 - No closed trades: `win_rate` / `avg_pnl` N/A
 
 Refresh correctness:
+
 - values match server after refresh.

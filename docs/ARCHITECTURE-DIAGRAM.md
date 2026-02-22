@@ -22,8 +22,9 @@ flowchart LR
   Browser -->|errors| Sentry
   API -->|errors| Sentry
 ```
-  
+
 ## Responsibilities (what happens where)
+
 CSRF token set
 API sets a csrf_token cookie (not HttpOnly) on login/session creation.
 

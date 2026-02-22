@@ -65,7 +65,7 @@ This is the prioritized build order for the MVP. Follow top to bottom.
 
 - [ ] Implement playbook locking rules:
   - [ ] Lock when any trade exists
-  - [ ] Unlock only if the *only* trade was `planned` and it gets cancelled
+  - [ ] Unlock only if the _only_ trade was `planned` and it gets cancelled
 - [ ] Update UI states:
   - [ ] Disable “Create Paper Trade” when a planned trade exists
   - [ ] Show lock/unlock banners

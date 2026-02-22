@@ -10,26 +10,28 @@
 
 ## Permissions matrix (MVP)
 
-| Resource | Investor | Admin |
-|---|---|---|
-| Auth (register/login/logout/me) | ✅ (self) | ✅ (self) |
-| Templates (list) | ✅ | ✅ |
-| Templates (create/update) | ❌ | ✅ |
-| Watchlist items (CRUD) | ✅ (owned) | ✅ (owned; no cross-user admin tools in MVP) |
-| Events (CRUD + mark completed) | ✅ (owned) | ✅ (owned; no cross-user admin tools in MVP) |
-| Playbooks (create/get/update) | ✅ (owned; update blocked when locked) | ✅ (owned; update blocked when locked) |
-| Paper trades (list/get/update/transition) | ✅ (owned) | ✅ (owned) |
-| Gate attempts (list) | ✅ (owned) | ✅ (owned) |
-| Dashboard (weekly) | ✅ (self) | ✅ (self) |
+| Resource                                  | Investor                               | Admin                                        |
+| ----------------------------------------- | -------------------------------------- | -------------------------------------------- |
+| Auth (register/login/logout/me)           | ✅ (self)                              | ✅ (self)                                    |
+| Templates (list)                          | ✅                                     | ✅                                           |
+| Templates (create/update)                 | ❌                                     | ✅                                           |
+| Watchlist items (CRUD)                    | ✅ (owned)                             | ✅ (owned; no cross-user admin tools in MVP) |
+| Events (CRUD + mark completed)            | ✅ (owned)                             | ✅ (owned; no cross-user admin tools in MVP) |
+| Playbooks (create/get/update)             | ✅ (owned; update blocked when locked) | ✅ (owned; update blocked when locked)       |
+| Paper trades (list/get/update/transition) | ✅ (owned)                             | ✅ (owned)                                   |
+| Gate attempts (list)                      | ✅ (owned)                             | ✅ (owned)                                   |
+| Dashboard (weekly)                        | ✅ (self)                              | ✅ (self)                                    |
 
 ---
 
 ## Scoping rules (anti-enumeration)
 
 For any user-owned resource (`watchlist_items`, `events`, `playbooks`, `paper_trades`, `gate_attempts`):
+
 - If the requester does not own it, the API returns **404 Not Found** (not 403) to avoid resource enumeration.
 
 **403 is reserved for:**
+
 - CSRF failures
 - True role restrictions (e.g., non-admin trying to create/update templates)
 
@@ -38,6 +40,7 @@ For any user-owned resource (`watchlist_items`, `events`, `playbooks`, `paper_tr
 ## Session + CSRF flow (double-submit)
 
 ### Session (cookie-based)
+
 - On successful login:
   - Server sets a session cookie (**HttpOnly; Secure in prod; SameSite=Lax**).
   - Session state lives in **Redis** (multi-instance safe).
@@ -45,6 +48,7 @@ For any user-owned resource (`watchlist_items`, `events`, `playbooks`, `paper_tr
   - Server destroys the session in Redis and clears cookies.
 
 ### CSRF (double-submit)
+
 - Server sets `csrf_token` cookie (**NOT HttpOnly**).
 - Client reads `csrf_token` and sends header `X-CSRF-Token` for all **non-GET** requests.
 - Server compares header token to cookie token:
@@ -61,6 +65,7 @@ For any user-owned resource (`watchlist_items`, `events`, `playbooks`, `paper_tr
 - **422**: validation errors
 
 ### Conflict types (locked)
+
 - `duplicate` (user-input duplicates: email, watchlist ticker)
 - `already_exists` (existence/race conflicts: playbook 1:1 already exists)
 - `planned_trade_exists`
@@ -91,23 +96,29 @@ For any user-owned resource (`watchlist_items`, `events`, `playbooks`, `paper_tr
 ## Security notes (pragmatic)
 
 ### Password hashing
+
 - Use a modern password hash (**argon2 recommended**).
 - Never store plaintext passwords.
 
 ### Rate limiting
+
 - Apply rate limits to:
   - `/api/auth/login`
   - `/api/auth/register`
 
 ### What MUST NOT be logged (locked)
+
 Never log free-text user content:
+
 - playbook text: `thesis`, `invalidation_rule`
 - trade plan/outcome/post-mortem text
 - cancel reasons
 
 Log only:
+
 - IDs, timestamps, statuses, gate counts, `conflict_type`, `event_type`
 
 ### Data minimization in errors
+
 - Use 404 for non-owned resources (no “exists but forbidden” leaks).
 - Keep error messages user-safe and non-revealing.

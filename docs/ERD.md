@@ -107,9 +107,10 @@ erDiagram
   events ||--o{ gate_attempts : logs
   paper_trades ||--o{ gate_attempts : created_from
 
- ``` 
+```
 
 ### Constraints & indexes (locked + required)
+
 Uniqueness
 
 users.email unique

@@ -23,11 +23,13 @@ Timestamps: `*_at` are UTC ISO-8601 strings in responses.
 ## Success response contract (canonical)
 
 - **200 (list/detail):**
+
 ```json
 { "data": {}, "message": "optional" }
 ```
 
 - **201 (create trade attempt success):**
+
 ```json
 { "trade_id": "uuid", "redirect_url": "/trades/<id>", "message": "string" }
 ```
@@ -37,6 +39,7 @@ Timestamps: `*_at` are UTC ISO-8601 strings in responses.
 ## Error response contract (LOCKED)
 
 ### Common fields (all errors)
+
 ```json
 {
   "message": "Human-readable, safe error message",
@@ -47,10 +50,12 @@ Timestamps: `*_at` are UTC ISO-8601 strings in responses.
 ### 422 Validation Error (field + gate errors can both exist)
 
 Rules:
+
 - message is always present
 - field_errors and gate_errors can both appear in one response
 
 Example:
+
 ```json
 {
   "message": "Validation failed.",
@@ -65,6 +70,7 @@ Example:
 ```
 
 ### 409 Conflict
+
 ```json
 {
   "message": "Planned trade already exists.",
@@ -74,6 +80,7 @@ Example:
 ```
 
 Valid conflict_type values (LOCKED):
+
 - planned_trade_exists
 - playbook_locked
 - already_completed
@@ -82,16 +89,19 @@ Valid conflict_type values (LOCKED):
 - already_exists
 
 ### 401 Unauthorized
+
 ```json
 { "message": "Session expired. Please log in again." }
 ```
 
 ### 403 Forbidden (includes CSRF failures)
+
 ```json
 { "message": "Security check failed. Refresh the page and try again." }
 ```
 
 ### 404 Not Found (or hidden due to scoping)
+
 ```json
 { "message": "Not found." }
 ```
@@ -103,18 +113,21 @@ Valid conflict_type values (LOCKED):
 ### Watchlist ticker + tags
 
 **ticker**
+
 - normalized to uppercase
 - regex: `^[A-Z0-9.-]{1,10}$`
 - unique per user: `unique(user_id, ticker)`
 - duplicate → 409 `conflict_type="duplicate"`
 
 **tags**
+
 - array of strings
 - max 10 tags
 - each tag length 1–20 (trimmed)
 - no empty strings
 
 ### Events
+
 - event_type: enum (MVP)
   - earnings | macro | company_event | other
 - event_datetime_at: required; stored as UTC
@@ -127,6 +140,7 @@ Valid conflict_type values (LOCKED):
 Templates provide checklist/help only.
 
 checklist_items is an array of:
+
 ```json
 { "id": "string", "label": "string", "help_text": "string?" }
 ```
@@ -177,6 +191,7 @@ Status enum: planned | open | closed | cancelled
 - Invalid transition → 409 `conflict_type="invalid_transition"`
 
 Outcome:
+
 - win if pnl_percent > 0
 - loss if < 0
 - flat if = 0
@@ -184,6 +199,7 @@ Outcome:
 ### GateAttempts (planned exists branch)
 
 When blocked_by_existing_planned_trade=true:
+
 - gate_results_json = null
 - passed_gate_count = null
 - total_gates = 5
@@ -198,12 +214,14 @@ When blocked_by_existing_planned_trade=true:
   - unique(playbook_id) WHERE status='planned'
 
 The attempt endpoint must:
+
 - check planned trade existence OR rely on unique constraint
 - translate unique violation into:
   - 409 planned_trade_exists and return planned_trade_id
 
 Attempt always logs GateAttempt (LOCKED):  
 Every click creates exactly one GateAttempt record:
+
 - gates fail → 422 + attempt logged
 - planned exists → 409 + attempt logged (blocked branch)
 - success → 201 + attempt logged and linked to trade
@@ -219,11 +237,13 @@ Every click creates exactly one GateAttempt record:
 Creates Investor user only (admin seeded separately).
 
 Request:
+
 ```json
 { "email": "user@example.com", "password": "min_8_chars" }
 ```
 
 200 Response:
+
 ```json
 {
   "data": {
@@ -236,17 +256,20 @@ Request:
 ```
 
 Errors:
+
 - 422 invalid email/password
 - 409 conflict_type="duplicate"
 
 #### POST /api/auth/login (Public)
 
 Request:
+
 ```json
 { "email": "user@example.com", "password": "..." }
 ```
 
 200 Response:
+
 ```json
 {
   "data": { "user_id": "uuid", "email": "user@example.com", "role": "investor" },
@@ -255,10 +278,12 @@ Request:
 ```
 
 Side effects:
+
 - sets session cookie (HttpOnly)
 - sets csrf_token cookie (NOT HttpOnly)
 
 Errors:
+
 - 401 invalid credentials
 - 422 missing fields
 
@@ -267,22 +292,26 @@ Errors:
 Headers: X-CSRF-Token
 
 200 Response:
+
 ```json
 { "data": { "ok": true }, "message": "Logged out." }
 ```
 
 Errors:
+
 - 401
 - 403 (CSRF)
 
 #### GET /api/auth/me (Investor/Admin)
 
 200 Response:
+
 ```json
 { "data": { "user_id": "uuid", "email": "user@example.com", "role": "investor" } }
 ```
 
 Errors:
+
 - 401
 
 ---
@@ -292,6 +321,7 @@ Errors:
 #### GET /api/templates (Investor/Admin)
 
 200 Response:
+
 ```json
 {
   "data": [
@@ -311,6 +341,7 @@ Errors:
 ```
 
 Errors:
+
 - 401
 
 #### POST /api/admin/templates (Admin)
@@ -318,6 +349,7 @@ Errors:
 Headers: X-CSRF-Token
 
 Request:
+
 ```json
 {
   "name": "Earnings Playbook",
@@ -330,11 +362,13 @@ Request:
 ```
 
 200 Response:
+
 ```json
 { "data": { "template_id": "uuid" }, "message": "Template created." }
 ```
 
 Errors:
+
 - 401/403
 - 422 invalid checklist items (missing id/label, duplicate ids)
 
@@ -345,11 +379,13 @@ Headers: X-CSRF-Token
 Request: same shape as create (partial update allowed)
 
 200 Response:
+
 ```json
 { "data": { "template_id": "uuid" }, "message": "Template updated." }
 ```
 
 Errors:
+
 - 404 not found
 - 422 validation
 - 403 forbidden
@@ -361,6 +397,7 @@ Errors:
 #### GET /api/watchlist_items (Investor/Admin)
 
 200 Response:
+
 ```json
 {
   "data": [
@@ -376,6 +413,7 @@ Errors:
 ```
 
 Errors:
+
 - 401
 
 #### POST /api/watchlist_items (Investor/Admin)
@@ -383,11 +421,13 @@ Errors:
 Headers: X-CSRF-Token
 
 Request:
+
 ```json
 { "ticker": "aapl", "tags": ["earnings"] }
 ```
 
 200 Response:
+
 ```json
 {
   "data": { "watchlist_item_id": "uuid", "ticker": "AAPL", "tags": ["earnings"] },
@@ -396,6 +436,7 @@ Request:
 ```
 
 Errors:
+
 - 422 invalid ticker/tags
 - 409 conflict_type="duplicate"
 
@@ -404,16 +445,19 @@ Errors:
 Headers: X-CSRF-Token
 
 Request:
+
 ```json
 { "tags": ["earnings", "watch"] }
 ```
 
 200 Response:
+
 ```json
 { "data": { "watchlist_item_id": "uuid", "ticker": "AAPL", "tags": ["earnings", "watch"] } }
 ```
 
 Errors:
+
 - 401/403/404/422
 
 #### DELETE /api/watchlist_items/:watchlist_item_id (Investor/Admin)
@@ -421,11 +465,13 @@ Errors:
 Headers: X-CSRF-Token
 
 200 Response:
+
 ```json
 { "data": { "ok": true }, "message": "Deleted." }
 ```
 
 Errors:
+
 - 401/403/404
 
 ---
@@ -435,9 +481,11 @@ Errors:
 #### GET /api/events (Investor/Admin)
 
 Query params:
+
 - status=upcoming|completed (optional; default upcoming)
 
 200 Response:
+
 ```json
 {
   "data": [
@@ -455,6 +503,7 @@ Query params:
 ```
 
 Errors:
+
 - 401
 
 #### POST /api/events (Investor/Admin)
@@ -462,6 +511,7 @@ Errors:
 Headers: X-CSRF-Token
 
 Request:
+
 ```json
 {
   "watchlist_item_id": "uuid",
@@ -472,17 +522,20 @@ Request:
 ```
 
 200 Response:
+
 ```json
 { "data": { "event_id": "uuid" }, "message": "Event created." }
 ```
 
 Errors:
+
 - 404 watchlist item not found/not owned
 - 422 validation
 
 #### GET /api/events/:event_id (LOCKED contract)
 
 200 Response:
+
 ```json
 {
   "data": {
@@ -511,6 +564,7 @@ Errors:
 ```
 
 Errors:
+
 - 401/404
 
 #### POST /api/events/:event_id/mark_completed (Investor/Admin)
@@ -518,6 +572,7 @@ Errors:
 Headers: X-CSRF-Token
 
 200 Response:
+
 ```json
 {
   "data": { "event_id": "uuid", "status": "completed", "completed_at": "2026-02-20T10:00:00Z" }
@@ -525,6 +580,7 @@ Headers: X-CSRF-Token
 ```
 
 Errors:
+
 - 401/403/404
 - 409 conflict_type="already_completed"
 
@@ -537,16 +593,19 @@ Errors:
 Headers: X-CSRF-Token
 
 Request:
+
 ```json
 { "template_id": "uuid" }
 ```
 
 200 Response:
+
 ```json
 { "data": { "playbook_id": "uuid" }, "message": "Playbook created." }
 ```
 
 Errors:
+
 - 404 event not found/not owned
 - 422 missing/invalid template
 - 409 conflict_type="already_exists"
@@ -554,6 +613,7 @@ Errors:
 #### GET /api/playbooks/:playbook_id (Investor/Admin)
 
 200 Response:
+
 ```json
 {
   "data": {
@@ -575,6 +635,7 @@ Errors:
 ```
 
 Errors:
+
 - 401/404
 
 #### PUT /api/playbooks/:playbook_id (Investor/Admin)
@@ -582,6 +643,7 @@ Errors:
 Headers: X-CSRF-Token
 
 Request:
+
 ```json
 {
   "thesis": "text...",
@@ -593,11 +655,16 @@ Request:
 ```
 
 200 Response:
+
 ```json
-{ "data": { "playbook_id": "uuid", "updated_at": "2026-02-12T12:30:00Z" }, "message": "Playbook saved." }
+{
+  "data": { "playbook_id": "uuid", "updated_at": "2026-02-12T12:30:00Z" },
+  "message": "Playbook saved."
+}
 ```
 
 Errors:
+
 - 401/403/404
 - 409 conflict_type="playbook_locked"
 - 422 validation
@@ -611,16 +678,19 @@ Errors:
 Headers: X-CSRF-Token
 
 Request:
+
 ```json
 { "playbook_id": "uuid" }
 ```
 
 201 Success:
+
 ```json
 { "trade_id": "uuid", "redirect_url": "/trades/uuid", "message": "Planned trade created." }
 ```
 
 422 Gate failure:
+
 ```json
 {
   "message": "Process Gate failed. Fix the gates to continue.",
@@ -632,6 +702,7 @@ Request:
 ```
 
 409 Planned exists:
+
 ```json
 {
   "message": "Planned trade already exists.",
@@ -641,6 +712,7 @@ Request:
 ```
 
 Errors:
+
 - 401
 - 403
 - 404
@@ -650,6 +722,7 @@ Errors:
 Query params: status=planned|open|closed|cancelled (optional)
 
 200 Response:
+
 ```json
 {
   "data": [
@@ -668,11 +741,13 @@ Query params: status=planned|open|closed|cancelled (optional)
 ```
 
 Errors:
+
 - 401
 
 #### GET /api/paper_trades/:paper_trade_id (Investor/Admin)
 
 200 Response:
+
 ```json
 {
   "data": {
@@ -698,6 +773,7 @@ Errors:
 ```
 
 Errors:
+
 - 401/404
 
 #### PUT /api/paper_trades/:paper_trade_id/plan (Investor/Admin)
@@ -705,6 +781,7 @@ Errors:
 Headers: X-CSRF-Token
 
 Request:
+
 ```json
 {
   "entry_plan": "Buy on breakout above X",
@@ -715,11 +792,13 @@ Request:
 ```
 
 200 Response:
+
 ```json
 { "data": { "paper_trade_id": "uuid" }, "message": "Plan saved." }
 ```
 
 Errors:
+
 - 401/403/404
 - 409 conflict_type="invalid_transition"
 - 422 validation
@@ -729,11 +808,13 @@ Errors:
 Headers: X-CSRF-Token
 
 Request:
+
 ```json
 { "confirm": true }
 ```
 
 200 Response:
+
 ```json
 {
   "data": { "paper_trade_id": "uuid", "status": "open", "opened_at": "2026-02-12T13:00:00Z" },
@@ -742,6 +823,7 @@ Request:
 ```
 
 Errors:
+
 - 401/403/404
 - 409 conflict_type="invalid_transition"
 - 422 missing plan fields
@@ -751,11 +833,13 @@ Errors:
 Headers: X-CSRF-Token
 
 Request:
+
 ```json
 { "pnl_percent": 12.5, "outcome_notes": "optional", "post_mortem_notes": "optional" }
 ```
 
 200 Response:
+
 ```json
 {
   "data": {
@@ -770,6 +854,7 @@ Request:
 ```
 
 Errors:
+
 - 401/403/404
 - 409 conflict_type="invalid_transition"
 - 422 invalid pnl_percent
@@ -779,19 +864,26 @@ Errors:
 Headers: X-CSRF-Token
 
 Request:
+
 ```json
 { "cancel_reason": "Changed mind; thesis not solid." }
 ```
 
 200 Response:
+
 ```json
 {
-  "data": { "paper_trade_id": "uuid", "status": "cancelled", "cancelled_at": "2026-02-12T14:00:00Z" },
+  "data": {
+    "paper_trade_id": "uuid",
+    "status": "cancelled",
+    "cancelled_at": "2026-02-12T14:00:00Z"
+  },
   "message": "Trade cancelled."
 }
 ```
 
 Errors:
+
 - 401/403/404
 - 409 conflict_type="invalid_transition"
 - 422 missing cancel_reason
@@ -805,6 +897,7 @@ Errors:
 Query params (optional): from_at, to_at, playbook_id
 
 200 Response:
+
 ```json
 {
   "data": [
@@ -823,6 +916,7 @@ Query params (optional): from_at, to_at, playbook_id
 ```
 
 Errors:
+
 - 401
 
 ---
@@ -832,9 +926,11 @@ Errors:
 #### GET /api/dashboard/weekly (Investor/Admin)
 
 Query params (optional):
+
 - week_start_at (UTC ISO date at 00:00:00Z). If omitted, server uses current UTC week window.
 
 200 Response:
+
 ```json
 {
   "data": {
@@ -851,5 +947,6 @@ Query params (optional):
 ```
 
 Notes:
+
 - process_score_week excludes attempts where blocked_by_existing_planned_trade=true.
 - If no scored attempts: process_score_week is null (UI shows N/A).

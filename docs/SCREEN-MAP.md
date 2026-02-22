@@ -7,12 +7,15 @@
 ## Navigation model
 
 ### Desktop (authenticated)
+
 Top nav: **Dashboard | Events | Watchlist | Trades | Templates | Logout**
 
 ### Mobile (authenticated)
+
 Drawer: **Dashboard, Events, Watchlist, Trades, Templates, Logout**
 
 ### Public (unauthenticated)
+
 Header: **Log in | Sign up**
 
 ---
@@ -20,12 +23,14 @@ Header: **Log in | Sign up**
 ## Public / Auth
 
 ### Landing + demo
+
 - **Route:** `/`
 - **Auth:** No
 - **Primary actions:** Sign up, Log in
 - **Key states:** Static
 
 ### Sign up
+
 - **Route:** `/signup`
 - **Auth:** No
 - **Primary actions:** Create account
@@ -36,6 +41,7 @@ Header: **Log in | Sign up**
   - Success → redirect
 
 ### Log in
+
 - **Route:** `/login`
 - **Auth:** No
 - **Primary actions:** Log in
@@ -51,6 +57,7 @@ Header: **Log in | Sign up**
 ## Dashboard
 
 ### Weekly dashboard
+
 - **Route:** `/dashboard`
 - **Auth:** Yes
 - **Primary actions:** Go to Events, Go to Trades
@@ -65,6 +72,7 @@ Header: **Log in | Sign up**
 ## Watchlist
 
 ### Watchlist list
+
 - **Route:** `/watchlist`
 - **Auth:** Yes
 - **Primary actions:** Add ticker, Edit tags, Delete, Create event
@@ -78,6 +86,7 @@ Header: **Log in | Sign up**
 ## Events
 
 ### Upcoming events list
+
 - **Route:** `/events`
 - **Auth:** Yes
 - **Primary actions:** Open event detail
@@ -87,6 +96,7 @@ Header: **Log in | Sign up**
   - Error: **401**
 
 ### Create event
+
 - **Route:** `/events/new?watchlist_item_id=:id`
 - **Auth:** Yes
 - **Primary actions:** Save event
@@ -95,6 +105,7 @@ Header: **Log in | Sign up**
   - Errors: **422**, **404**, **401**
 
 ### Event detail (server-driven `planned_trade_id`)
+
 - **Route:** `/events/:event_id`
 - **Auth:** Yes
 - **Primary actions:**
@@ -110,6 +121,7 @@ Header: **Log in | Sign up**
   - Errors: **401 / 403 / 404 / 409** `already_completed` / **422** gate errors
 
 **Contract (locked):**
+
 - `GET /api/events/:id` → `200 { data: { event, watchlist_item, playbook_summary, planned_trade_id }, message? }`
 
 ---
@@ -117,6 +129,7 @@ Header: **Log in | Sign up**
 ## PaperTrades
 
 ### Trades list
+
 - **Route:** `/trades`
 - **Auth:** Yes
 - **Primary actions:** Open trade detail
@@ -126,6 +139,7 @@ Header: **Log in | Sign up**
   - Error: **401**
 
 ### Trade detail (locks playbook on OPEN)
+
 - **Route:** `/trades/:trade_id`
 - **Auth:** Yes
 - **Primary actions:**
@@ -144,6 +158,7 @@ Header: **Log in | Sign up**
 ## Templates
 
 ### Templates list (read-only)
+
 - **Route:** `/templates`
 - **Auth:** Yes
 - **Primary actions:** View template accordion
