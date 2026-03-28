@@ -20,3 +20,8 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+
+# VS Code (ignore most, allow shared settings)
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
