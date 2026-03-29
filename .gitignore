@@ -25,3 +25,8 @@ venv/
 .vscode/*
 !.vscode/settings.json
 !.vscode/extensions.json
+
+# Build outputs
+dist/
+build/
+coverage/
