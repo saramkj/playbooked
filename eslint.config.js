@@ -4,6 +4,9 @@ import tseslint from 'typescript-eslint';
 import prettier from 'eslint-config-prettier';
 
 export default [
+  {
+    ignores: ['apps/api/dist/**'],
+  },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   prettier,
