@@ -1,10 +1,4 @@
-import express from "express";
-
-const app = express();
-
-app.get("/health", (_req, res) => {
-  res.status(200).json({ ok: true });
-});
+import { app } from "./app.js";
 
 const port = process.env.API_PORT ? Number(process.env.API_PORT) : 3000;
 
