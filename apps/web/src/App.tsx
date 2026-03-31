@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { PageShell } from './components/PageShell';
+import { LoadingState } from './components/LoadingState';
 import { SessionProvider } from './session/SessionProvider';
 import { useSession } from './session/useSession';
 import { DashboardPage } from './pages/DashboardPage';
@@ -17,8 +18,12 @@ import { TradesPage } from './pages/TradesPage';
 import { WatchlistPage } from './pages/WatchlistPage';
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
-  const { isAuthenticated } = useSession();
+  const { isAuthenticated, isLoading } = useSession();
   const location = useLocation();
+
+  if (isLoading) {
+    return <LoadingState label="Checking your session..." />;
+  }
 
   if (!isAuthenticated) {
     const returnTo = `${location.pathname}${location.search}${location.hash}`;

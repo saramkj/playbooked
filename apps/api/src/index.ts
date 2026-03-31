@@ -1,7 +1,14 @@
+import "dotenv/config";
 import { app } from "./app.js";
+import { env } from "./lib/env.js";
+import { ensureRedisConnected } from "./lib/session.js";
 
-const port = process.env.API_PORT ? Number(process.env.API_PORT) : 3000;
+async function start() {
+  await ensureRedisConnected();
 
-app.listen(port, () => {
-  console.log(`API listening on http://localhost:${port}`);
-});
+  app.listen(env.apiPort, () => {
+    console.log(`API listening on http://localhost:${env.apiPort}`);
+  });
+}
+
+void start();

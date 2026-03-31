@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import { type ReactNode, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { Button } from './Button';
 import { useSession } from '../session/useSession';
@@ -31,12 +31,19 @@ function NavItem({ label, to }: { label: string; to: string }) {
 }
 
 export function PageShell({ children }: PageShellProps) {
-  const { isAuthenticated, signOut } = useSession();
+  const { isAuthenticated, isLoading, signOut } = useSession();
   const navigate = useNavigate();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  function handleLogout() {
-    signOut();
-    navigate('/');
+  async function handleLogout() {
+    setIsLoggingOut(true);
+
+    try {
+      await signOut();
+      navigate('/');
+    } finally {
+      setIsLoggingOut(false);
+    }
   }
 
   return (
@@ -49,7 +56,7 @@ export function PageShell({ children }: PageShellProps) {
               <p className="text-sm text-stone-600">Paper-trading discipline, not impulse.</p>
             </Link>
 
-            {!isAuthenticated ? (
+            {!isAuthenticated && !isLoading ? (
               <div className="flex items-center gap-3">
                 <Link className="text-sm font-medium text-stone-700 hover:text-stone-950" to="/login">
                   Log in
@@ -66,7 +73,7 @@ export function PageShell({ children }: PageShellProps) {
               {authedNavItems.map((item) => (
                 <NavItem key={item.to} {...item} />
               ))}
-              <Button className="ml-auto" variant="ghost" onClick={handleLogout}>
+              <Button className="ml-auto" disabled={isLoggingOut} variant="ghost" onClick={() => void handleLogout()}>
                 Logout
               </Button>
             </div>
