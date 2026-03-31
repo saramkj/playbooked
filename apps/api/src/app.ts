@@ -3,6 +3,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
 import { authRouter } from "./routes/auth.js";
+import { eventsRouter } from "./routes/events.js";
 import { env } from "./lib/env.js";
 import { createSessionMiddleware } from "./lib/session.js";
 import { csrfProtection, ensureCsrfCookie } from "./middlewares/csrf.js";
@@ -31,5 +32,6 @@ app.get("/health", (_req, res) => {
 
 app.use("/api/auth", authRouter);
 app.use("/api/watchlist_items", watchlistRouter);
+app.use("/api/events", eventsRouter);
 
 app.use(errorHandler);
