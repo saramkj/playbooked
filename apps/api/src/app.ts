@@ -7,6 +7,7 @@ import { env } from "./lib/env.js";
 import { createSessionMiddleware } from "./lib/session.js";
 import { csrfProtection, ensureCsrfCookie } from "./middlewares/csrf.js";
 import { errorHandler } from "./lib/http.js";
+import { watchlistRouter } from "./routes/watchlist.js";
 
 export const app = express();
 
@@ -29,5 +30,6 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/api/auth", authRouter);
+app.use("/api/watchlist_items", watchlistRouter);
 
 app.use(errorHandler);
