@@ -5,6 +5,7 @@ import { Card } from '../components/Card';
 import { EmptyState } from '../components/EmptyState';
 import { ErrorBanner } from '../components/ErrorBanner';
 import { LoadingState } from '../components/LoadingState';
+import { SuccessBanner } from '../components/SuccessBanner';
 import { ApiError } from '../lib/api';
 import { formatLocalDateTimeWithOffset } from '../lib/events';
 import {
@@ -113,6 +114,7 @@ export function TradeDetailPage() {
   const canOpen = trade?.status === 'planned';
   const canClose = trade?.status === 'open';
   const canCancel = trade?.status === 'planned' || trade?.status === 'open';
+  const isReadOnlyTrade = trade?.status === 'closed' || trade?.status === 'cancelled';
 
   const closedOutcomeLabel = useMemo(() => {
     if (closeOutcome) {
@@ -353,9 +355,12 @@ export function TradeDetailPage() {
 
         <div className="space-y-6">
           {actionError ? <ErrorBanner message={actionError} title="Trade action failed" /> : null}
-          {successMessage ? (
-            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-              {successMessage}
+          {successMessage ? <SuccessBanner message={successMessage} title="Trade updated" /> : null}
+          {isReadOnlyTrade ? (
+            <div className="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-700">
+              {trade.status === 'closed'
+                ? 'This trade is closed. You can review the saved plan and outcome details, but lifecycle actions are no longer available.'
+                : 'This trade is cancelled. You can review the saved details, but lifecycle actions are no longer available.'}
             </div>
           ) : null}
 
@@ -373,7 +378,13 @@ export function TradeDetailPage() {
                   }`}
                   disabled={!isPlanEditable || isSavingPlan}
                   value={form.entry_plan}
-                  onChange={(event) => setForm((current) => ({ ...current, entry_plan: event.target.value }))}
+                  onChange={(event) => {
+                    setForm((current) => ({ ...current, entry_plan: event.target.value }));
+                    if (fieldErrors.entry_plan || actionError) {
+                      setFieldErrors((current) => ({ ...current, entry_plan: '' }));
+                      setActionError(null);
+                    }
+                  }}
                 />
                 {fieldErrors.entry_plan ? <p className="text-sm text-rose-700">{fieldErrors.entry_plan}</p> : null}
               </label>
@@ -386,7 +397,13 @@ export function TradeDetailPage() {
                   }`}
                   disabled={!isPlanEditable || isSavingPlan}
                   value={form.stop_rule}
-                  onChange={(event) => setForm((current) => ({ ...current, stop_rule: event.target.value }))}
+                  onChange={(event) => {
+                    setForm((current) => ({ ...current, stop_rule: event.target.value }));
+                    if (fieldErrors.stop_rule || actionError) {
+                      setFieldErrors((current) => ({ ...current, stop_rule: '' }));
+                      setActionError(null);
+                    }
+                  }}
                 />
                 {fieldErrors.stop_rule ? <p className="text-sm text-rose-700">{fieldErrors.stop_rule}</p> : null}
               </label>
@@ -399,7 +416,13 @@ export function TradeDetailPage() {
                   }`}
                   disabled={!isPlanEditable || isSavingPlan}
                   value={form.take_profit_rule}
-                  onChange={(event) => setForm((current) => ({ ...current, take_profit_rule: event.target.value }))}
+                  onChange={(event) => {
+                    setForm((current) => ({ ...current, take_profit_rule: event.target.value }));
+                    if (fieldErrors.take_profit_rule || actionError) {
+                      setFieldErrors((current) => ({ ...current, take_profit_rule: '' }));
+                      setActionError(null);
+                    }
+                  }}
                 />
                 {fieldErrors.take_profit_rule ? <p className="text-sm text-rose-700">{fieldErrors.take_profit_rule}</p> : null}
               </label>
@@ -415,14 +438,22 @@ export function TradeDetailPage() {
                   step="0.0001"
                   type="number"
                   value={form.position_size}
-                  onChange={(event) => setForm((current) => ({ ...current, position_size: event.target.value }))}
+                  onChange={(event) => {
+                    setForm((current) => ({ ...current, position_size: event.target.value }));
+                    if (fieldErrors.position_size || actionError) {
+                      setFieldErrors((current) => ({ ...current, position_size: '' }));
+                      setActionError(null);
+                    }
+                  }}
                 />
                 {fieldErrors.position_size ? <p className="text-sm text-rose-700">{fieldErrors.position_size}</p> : null}
               </label>
 
-              <Button disabled={!isPlanEditable || isSavingPlan} type="submit">
-                {isSavingPlan ? 'Saving plan...' : 'Save plan'}
-              </Button>
+              {isPlanEditable ? (
+                <Button disabled={isSavingPlan} type="submit">
+                  {isSavingPlan ? 'Saving plan...' : 'Save plan'}
+                </Button>
+              ) : null}
             </form>
           </Card>
 
@@ -446,11 +477,19 @@ export function TradeDetailPage() {
               </div>
             ) : null}
 
-            <div className="flex flex-wrap gap-3">
-              <Button disabled={!canOpen || isOpening} onClick={() => setShowOpenConfirm(true)}>
-                Mark OPEN
-              </Button>
-            </div>
+            {canOpen ? (
+              <div className="flex flex-wrap gap-3">
+                <Button disabled={isOpening} onClick={() => setShowOpenConfirm(true)}>
+                  Mark OPEN
+                </Button>
+              </div>
+            ) : (
+              <p className="text-sm text-stone-500">
+                {trade.status === 'open'
+                  ? 'This trade is already open.'
+                  : 'Mark OPEN is only available while the trade is still planned.'}
+              </p>
+            )}
 
             <form className="space-y-4 rounded-2xl border border-stone-200 p-4" onSubmit={(event) => void handleCloseTrade(event)}>
               <h3 className="text-lg font-semibold text-stone-900">Close trade</h3>
@@ -466,7 +505,13 @@ export function TradeDetailPage() {
                   step="0.01"
                   type="number"
                   value={form.pnl_percent}
-                  onChange={(event) => setForm((current) => ({ ...current, pnl_percent: event.target.value }))}
+                  onChange={(event) => {
+                    setForm((current) => ({ ...current, pnl_percent: event.target.value }));
+                    if (fieldErrors.pnl_percent || actionError) {
+                      setFieldErrors((current) => ({ ...current, pnl_percent: '' }));
+                      setActionError(null);
+                    }
+                  }}
                 />
                 {fieldErrors.pnl_percent ? <p className="text-sm text-rose-700">{fieldErrors.pnl_percent}</p> : null}
               </label>
@@ -491,9 +536,13 @@ export function TradeDetailPage() {
                 />
               </label>
 
-              <Button disabled={!canClose || isClosing} type="submit" variant="secondary">
-                {isClosing ? 'Closing...' : 'Close trade'}
-              </Button>
+              {canClose ? (
+                <Button disabled={isClosing} type="submit" variant="secondary">
+                  {isClosing ? 'Closing...' : 'Close trade'}
+                </Button>
+              ) : (
+                <p className="text-sm text-stone-500">Close is only available after the trade is open.</p>
+              )}
             </form>
 
             <div className="space-y-4 rounded-2xl border border-stone-200 p-4">
@@ -506,13 +555,23 @@ export function TradeDetailPage() {
                   }`}
                   disabled={!canCancel || isCancelling}
                   value={form.cancel_reason}
-                  onChange={(event) => setForm((current) => ({ ...current, cancel_reason: event.target.value }))}
+                  onChange={(event) => {
+                    setForm((current) => ({ ...current, cancel_reason: event.target.value }));
+                    if (fieldErrors.cancel_reason || actionError) {
+                      setFieldErrors((current) => ({ ...current, cancel_reason: '' }));
+                      setActionError(null);
+                    }
+                  }}
                 />
                 {fieldErrors.cancel_reason ? <p className="text-sm text-rose-700">{fieldErrors.cancel_reason}</p> : null}
               </label>
-              <Button disabled={!canCancel || isCancelling} variant="ghost" onClick={() => void handleCancelTrade()}>
-                {isCancelling ? 'Cancelling...' : 'Cancel trade'}
-              </Button>
+              {canCancel ? (
+                <Button disabled={isCancelling} variant="ghost" onClick={() => void handleCancelTrade()}>
+                  {isCancelling ? 'Cancelling...' : 'Cancel trade'}
+                </Button>
+              ) : (
+                <p className="text-sm text-stone-500">Cancel is only available while the trade is planned or open.</p>
+              )}
             </div>
           </Card>
         </div>

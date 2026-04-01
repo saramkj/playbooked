@@ -61,10 +61,17 @@ export function SignupPage() {
             autoComplete="email"
             error={fieldErrors.email}
             label="Email"
-            onChange={(event) => setEmail(event.target.value)}
+            onChange={(event) => {
+              setEmail(event.target.value);
+              if (fieldErrors.email || formError) {
+                setFieldErrors((current) => ({ ...current, email: '' }));
+                setFormError(null);
+              }
+            }}
             placeholder="you@example.com"
             type="email"
             value={email}
+            disabled={isSubmitting}
           />
           <Input
             id="signup-password"
@@ -72,15 +79,26 @@ export function SignupPage() {
             error={fieldErrors.password}
             hint="Password must be at least 8 characters."
             label="Password"
-            onChange={(event) => setPassword(event.target.value)}
+            onChange={(event) => {
+              setPassword(event.target.value);
+              if (fieldErrors.password || formError) {
+                setFieldErrors((current) => ({ ...current, password: '' }));
+                setFormError(null);
+              }
+            }}
             placeholder="Minimum 8 characters"
             type="password"
             value={password}
+            disabled={isSubmitting}
           />
           <Button fullWidth disabled={isSubmitting} type="submit">
             {isSubmitting ? 'Creating account...' : 'Create account'}
           </Button>
         </form>
+
+        <p className="text-xs leading-5 text-stone-500">
+          Investor accounts only are available here. If the email already exists, use the login flow instead.
+        </p>
       </Card>
 
       <p className="text-center text-sm text-stone-600">

@@ -48,10 +48,10 @@ export function EventsPage() {
         <div className="space-y-3">
           <p className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-700">Events</p>
           <h1 className="text-4xl font-semibold text-stone-950">Upcoming events</h1>
-          <p className="max-w-3xl text-base leading-7 text-stone-600">
-            This feed stays focused on what is still upcoming so you can spot the next catalyst and
-            jump straight into the related event detail.
-          </p>
+        <p className="max-w-3xl text-base leading-7 text-stone-600">
+          This feed stays focused on what is still upcoming so you can spot the next catalyst, review
+          the current setup, and jump straight into the related event detail.
+        </p>
         </div>
         <Link to="/events/new">
           <Button variant="secondary">Create event</Button>
@@ -79,7 +79,7 @@ export function EventsPage() {
               </div>
               <div className="space-y-2 text-sm text-stone-600">
                 <p>{formatLocalDateTimeWithOffset(event.event_datetime_at)}</p>
-                <p>Playbook and gate readiness will appear here in the next stage.</p>
+                <p>Open the event to manage the playbook, process gate, and planned-trade state.</p>
               </div>
               <Link className="text-sm font-semibold text-amber-700 hover:text-amber-800" to={`/events/${event.event_id}`}>
                 Open event
@@ -92,9 +92,14 @@ export function EventsPage() {
           title="No upcoming events yet."
           description="Create an event from your watchlist to start preparing around the next catalyst."
           action={
-            <Link to="/watchlist">
-              <Button variant="secondary">Go to watchlist</Button>
-            </Link>
+            <div className="flex flex-wrap gap-3">
+              <Link to="/watchlist">
+                <Button variant="secondary">Go to watchlist</Button>
+              </Link>
+              <Link to="/events/new">
+                <Button variant="ghost">Create event</Button>
+              </Link>
+            </div>
           }
         />
       )}

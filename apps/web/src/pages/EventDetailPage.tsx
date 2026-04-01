@@ -5,6 +5,7 @@ import { Card } from '../components/Card';
 import { EmptyState } from '../components/EmptyState';
 import { ErrorBanner } from '../components/ErrorBanner';
 import { LoadingState } from '../components/LoadingState';
+import { SuccessBanner } from '../components/SuccessBanner';
 import { ApiError } from '../lib/api';
 import { formatLocalDateTimeWithOffset, getEventDetail, markEventCompleted, type EventDetailResponse } from '../lib/events';
 import { buildGatePreview, createPlaybook, getPlaybook, parseKeyMetricsInput, savePlaybook, type Playbook } from '../lib/playbooks';
@@ -22,7 +23,9 @@ export function EventDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [pageError, setPageError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
   const [playbookError, setPlaybookError] = useState<string | null>(null);
+  const [playbookSuccess, setPlaybookSuccess] = useState<string | null>(null);
   const [playbookFieldErrors, setPlaybookFieldErrors] = useState<Record<string, string>>({});
   const [isMarkingCompleted, setIsMarkingCompleted] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState('');
@@ -58,7 +61,6 @@ export function EventDetailPage() {
     try {
       const response = await getEventDetail(event_id);
       setDetail(response.data);
-      setTradeActionError(null);
       return response.data;
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
@@ -193,10 +195,12 @@ export function EventDetailPage() {
 
     setIsMarkingCompleted(true);
     setActionError(null);
+    setActionSuccess(null);
 
     try {
       await markEventCompleted(event_id);
       await loadEventDetail();
+      setActionSuccess('The event is now marked completed.');
     } catch (error) {
       if (error instanceof ApiError) {
         if (error.status === 401) {
@@ -224,6 +228,7 @@ export function EventDetailPage() {
     setTradeActionError(null);
     setGateAttemptErrors([]);
     setGateAttemptPassedCount(null);
+    setPlaybookSuccess(null);
 
     try {
       const response = await attemptPaperTrade(playbook.playbook_id);
@@ -278,6 +283,7 @@ export function EventDetailPage() {
     setIsCreatingPlaybook(true);
     setPlaybookError(null);
     setPlaybookFieldErrors({});
+    setPlaybookSuccess(null);
 
     try {
       const response = await createPlaybook(event_id, templateId);
@@ -286,6 +292,7 @@ export function EventDetailPage() {
       if (updatedDetail?.playbook_summary) {
         await loadPlaybook(response.data.playbook_id);
       }
+      setPlaybookSuccess('Playbook created. Fill the fields below to improve the gate score.');
     } catch (error) {
       if (error instanceof ApiError) {
         if (error.status === 401) {
@@ -334,6 +341,10 @@ export function EventDetailPage() {
     setIsSavingPlaybook(true);
     setPlaybookError(null);
     setPlaybookFieldErrors({});
+    setPlaybookSuccess(null);
+    setTradeActionError(null);
+    setGateAttemptErrors([]);
+    setGateAttemptPassedCount(null);
 
     try {
       await savePlaybook(playbook.playbook_id, {
@@ -347,6 +358,7 @@ export function EventDetailPage() {
 
       await loadPlaybook(playbook.playbook_id);
       await loadEventDetail();
+      setPlaybookSuccess('Playbook saved.');
     } catch (error) {
       if (error instanceof ApiError) {
         if (error.status === 401) {
@@ -388,8 +400,8 @@ export function EventDetailPage() {
         <p className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-700">Event detail</p>
         <h1 className="text-4xl font-semibold text-stone-950">{detail.watchlist_item.ticker}</h1>
         <p className="max-w-3xl text-base leading-7 text-stone-600">
-          This page now uses the real event, playbook, and process-gate attempt flow. Trade lifecycle actions
-          beyond planned creation remain intentionally stubbed for the next stage.
+          Manage the event, complete the playbook, and use the Process Gate panel to decide whether a
+          planned paper trade can be created yet.
         </p>
       </section>
 
@@ -445,17 +457,20 @@ export function EventDetailPage() {
             </div>
           ) : null}
           {actionError ? <ErrorBanner message={actionError} title="Couldn't update the event" /> : null}
-          <Button
-            disabled={isMarkingCompleted || detail.event.status === 'completed'}
-            variant="secondary"
-            onClick={() => void handleMarkCompleted()}
-          >
-            {detail.event.status === 'completed'
-              ? 'Already completed'
-              : isMarkingCompleted
-                ? 'Marking completed...'
-                : 'Mark completed'}
-          </Button>
+          {actionSuccess ? <SuccessBanner message={actionSuccess} title="Event updated" /> : null}
+          {detail.event.status === 'completed' ? (
+            <div className="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-700">
+              This event is already completed.
+            </div>
+          ) : (
+            <Button
+              disabled={isMarkingCompleted}
+              variant="secondary"
+              onClick={() => void handleMarkCompleted()}
+            >
+              {isMarkingCompleted ? 'Marking completed...' : 'Mark completed'}
+            </Button>
+          )}
         </Card>
 
         <div className="space-y-6">
@@ -477,6 +492,7 @@ export function EventDetailPage() {
                 />
               </div>
             ) : null}
+            {playbookSuccess ? <SuccessBanner message={playbookSuccess} title="Playbook updated" /> : null}
             {!playbook ? (
               templates.length === 0 ? (
                 <ErrorBanner
@@ -556,7 +572,7 @@ export function EventDetailPage() {
                 {playbook.is_locked ? (
                   <ErrorBanner
                     title="Playbook locked"
-                    message="Playbook locked because a trade is open."
+                    message="This playbook is read-only because a linked trade has been opened. It only becomes editable again in the narrow planned-cancel unlock path."
                   />
                 ) : null}
 
@@ -672,7 +688,7 @@ export function EventDetailPage() {
               <div className="space-y-3">
                 {tradeActionError ? (
                   <ErrorBanner
-                    title={detail.planned_trade_id ? 'Planned trade state updated' : 'Process Gate blocked'}
+                    title={detail.planned_trade_id ? 'Planned trade already exists' : 'Process Gate blocked'}
                     message={tradeActionError}
                   />
                 ) : null}
@@ -705,19 +721,24 @@ export function EventDetailPage() {
               {detail.planned_trade_id ? (
                 <>
                   <div className="w-full rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                    Planned trade already exists for this playbook.
+                    A planned trade already exists for this playbook, so another one cannot be created right now.
                   </div>
                   <Link to={`/trades/${detail.planned_trade_id}`}>
                     <Button variant="secondary">View planned trade</Button>
                   </Link>
                 </>
               ) : (
-                <Button
-                  disabled={!playbook || isCreatingTrade}
-                  onClick={() => void handleCreatePaperTrade()}
-                >
-                  {isCreatingTrade ? 'Creating planned trade...' : 'Create Paper Trade'}
-                </Button>
+                <>
+                  <Button
+                    disabled={!playbook || isCreatingTrade}
+                    onClick={() => void handleCreatePaperTrade()}
+                  >
+                    {isCreatingTrade ? 'Creating planned trade...' : 'Create Paper Trade'}
+                  </Button>
+                  {!playbook ? (
+                    <p className="text-sm text-stone-500">Create the event’s playbook first to unlock the attempt flow.</p>
+                  ) : null}
+                </>
               )}
             </div>
           </Card>

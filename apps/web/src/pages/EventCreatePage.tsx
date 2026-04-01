@@ -181,7 +181,14 @@ export function EventCreatePage() {
                 fieldErrors.watchlist_item_id ? 'border-rose-300 bg-rose-50' : 'border-stone-300 bg-white'
               }`}
               value={selectedWatchlistItemId}
-              onChange={(currentEvent) => setSelectedWatchlistItemId(currentEvent.target.value)}
+              onChange={(currentEvent) => {
+                setSelectedWatchlistItemId(currentEvent.target.value);
+                if (formError || fieldErrors.watchlist_item_id) {
+                  setFormError(null);
+                  setFieldErrors((current) => ({ ...current, watchlist_item_id: '' }));
+                }
+              }}
+              disabled={isSubmitting}
             >
               <option value="" disabled>
                 Select a ticker
@@ -205,7 +212,14 @@ export function EventCreatePage() {
                 fieldErrors.event_type ? 'border-rose-300 bg-rose-50' : 'border-stone-300 bg-white'
               }`}
               value={eventType}
-              onChange={(currentEvent) => setEventType(currentEvent.target.value as typeof eventType)}
+              onChange={(currentEvent) => {
+                setEventType(currentEvent.target.value as typeof eventType);
+                if (formError || fieldErrors.event_type) {
+                  setFormError(null);
+                  setFieldErrors((current) => ({ ...current, event_type: '' }));
+                }
+              }}
+              disabled={isSubmitting}
             >
               {eventTypeOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -222,7 +236,14 @@ export function EventCreatePage() {
             type="datetime-local"
             value={eventDateTimeLocal}
             error={fieldErrors.event_datetime_at}
-            onChange={(currentEvent) => setEventDateTimeLocal(currentEvent.target.value)}
+            onChange={(currentEvent) => {
+              setEventDateTimeLocal(currentEvent.target.value);
+              if (formError || fieldErrors.event_datetime_at) {
+                setFormError(null);
+                setFieldErrors((current) => ({ ...current, event_datetime_at: '' }));
+              }
+            }}
+            disabled={isSubmitting}
           />
 
           <label className="block space-y-2" htmlFor="event-notes">
@@ -233,6 +254,7 @@ export function EventCreatePage() {
               placeholder="Optional notes"
               value={notes}
               onChange={(currentEvent) => setNotes(currentEvent.target.value)}
+              disabled={isSubmitting}
             />
           </label>
 
@@ -243,12 +265,16 @@ export function EventCreatePage() {
           ) : null}
 
           <div className="flex flex-wrap gap-3">
-            <Button disabled={isSubmitting} type="submit">
+            <Button disabled={isSubmitting || !selectedWatchlistItemId} type="submit">
               {isSubmitting ? 'Creating...' : 'Create event'}
             </Button>
-            <Link to="/events">
-              <Button variant="secondary">Back to events</Button>
-            </Link>
+            {isSubmitting ? (
+              <Button disabled variant="secondary">Back to events</Button>
+            ) : (
+              <Link to="/events">
+                <Button variant="secondary">Back to events</Button>
+              </Link>
+            )}
           </div>
         </form>
       </Card>

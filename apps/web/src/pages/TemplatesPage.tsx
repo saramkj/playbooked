@@ -46,7 +46,8 @@ export function TemplatesPage() {
         <p className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-700">Templates</p>
         <h1 className="text-4xl font-semibold text-stone-950">Read-only templates</h1>
         <p className="max-w-3xl text-base leading-7 text-stone-600">
-          Templates stay checklist-only in MVP. Investors can review them here and choose one when creating a playbook.
+          Templates stay checklist-only in MVP. Review them here first, then choose one from an event
+          detail page when you create the event’s single playbook.
         </p>
       </section>
 
@@ -82,6 +83,7 @@ export function TemplatesPage() {
         <EmptyState
           title="No templates available."
           description="Playbook creation stays blocked until at least one checklist template exists."
+          action={<p className="text-sm text-stone-500">Once templates are seeded, they will show up here automatically.</p>}
         />
       )}
     </div>

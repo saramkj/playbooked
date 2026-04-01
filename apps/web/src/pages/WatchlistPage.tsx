@@ -6,6 +6,7 @@ import { EmptyState } from '../components/EmptyState';
 import { ErrorBanner } from '../components/ErrorBanner';
 import { Input } from '../components/Input';
 import { LoadingState } from '../components/LoadingState';
+import { SuccessBanner } from '../components/SuccessBanner';
 import { ApiError } from '../lib/api';
 import {
   createWatchlistItem,
@@ -26,6 +27,7 @@ export function WatchlistPage() {
   const [ticker, setTicker] = useState('');
   const [tagsInput, setTagsInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [editingTagsInput, setEditingTagsInput] = useState('');
   const [editingError, setEditingError] = useState<string | null>(null);
@@ -90,15 +92,17 @@ export function WatchlistPage() {
     setIsSubmitting(true);
     setFormError(null);
     setFieldErrors({});
+    setSuccessMessage(null);
 
     try {
-      await createWatchlistItem({
+      const response = await createWatchlistItem({
         ticker,
         tags: parseTags(tagsInput),
       });
 
       setTicker('');
       setTagsInput('');
+      setSuccessMessage(response.message ?? 'Ticker added to your watchlist.');
       await loadWatchlist();
     } catch (error) {
       if (error instanceof ApiError) {
@@ -123,6 +127,7 @@ export function WatchlistPage() {
     setEditingTagsInput(item.tags.join(', '));
     setEditingError(null);
     setEditingFieldError(null);
+    setSuccessMessage(null);
   }
 
   function cancelEditing() {
@@ -136,13 +141,15 @@ export function WatchlistPage() {
     setIsSavingItemId(watchlistItemId);
     setEditingError(null);
     setEditingFieldError(null);
+    setSuccessMessage(null);
 
     try {
-      await updateWatchlistItem(watchlistItemId, {
+      const response = await updateWatchlistItem(watchlistItemId, {
         tags: parseTags(editingTagsInput),
       });
 
       cancelEditing();
+      setSuccessMessage(response.message ?? 'Tags updated.');
       await loadWatchlist();
     } catch (error) {
       if (error instanceof ApiError) {
@@ -165,12 +172,14 @@ export function WatchlistPage() {
   async function handleDelete(watchlistItemId: string) {
     setIsDeletingItemId(watchlistItemId);
     setPageError(null);
+    setSuccessMessage(null);
 
     try {
-      await deleteWatchlistItem(watchlistItemId);
+      const response = await deleteWatchlistItem(watchlistItemId);
       setItems((currentItems) =>
         currentItems.filter((item) => item.watchlist_item_id !== watchlistItemId),
       );
+      setSuccessMessage(response.message);
 
       if (editingItemId === watchlistItemId) {
         cancelEditing();
@@ -203,6 +212,7 @@ export function WatchlistPage() {
       </section>
 
       {pageError ? <ErrorBanner message={pageError} /> : null}
+      {successMessage ? <SuccessBanner message={successMessage} title="Watchlist updated" /> : null}
 
       <Card className="space-y-4">
         <div className="space-y-2">
@@ -227,7 +237,14 @@ export function WatchlistPage() {
               placeholder="AAPL"
               value={ticker}
               error={fieldErrors.ticker}
-              onChange={(event) => setTicker(event.target.value)}
+              onChange={(event) => {
+                setTicker(event.target.value);
+                if (formError || fieldErrors.ticker) {
+                  setFormError(null);
+                  setFieldErrors((current) => ({ ...current, ticker: '' }));
+                }
+              }}
+              disabled={isSubmitting}
             />
             <Input
               id="tags"
@@ -236,7 +253,14 @@ export function WatchlistPage() {
               placeholder="earnings, large-cap"
               value={tagsInput}
               error={fieldErrors.tags}
-              onChange={(event) => setTagsInput(event.target.value)}
+              onChange={(event) => {
+                setTagsInput(event.target.value);
+                if (formError || fieldErrors.tags) {
+                  setFormError(null);
+                  setFieldErrors((current) => ({ ...current, tags: '' }));
+                }
+              }}
+              disabled={isSubmitting}
             />
           </div>
           <Button disabled={isSubmitting} type="submit">
@@ -264,11 +288,16 @@ export function WatchlistPage() {
                   </div>
 
                   <div className="flex flex-wrap gap-2">
-                    <Link to={`/events/new?watchlist_item_id=${item.watchlist_item_id}`}>
-                      <Button variant="secondary">Create event</Button>
-                    </Link>
+                    {isDeleting || isSaving ? (
+                      <Button disabled variant="secondary">Create event</Button>
+                    ) : (
+                      <Link to={`/events/new?watchlist_item_id=${item.watchlist_item_id}`}>
+                        <Button variant="secondary">Create event</Button>
+                      </Link>
+                    )}
                     {!isEditing ? (
                       <Button
+                        disabled={isDeleting || isSaving}
                         variant="ghost"
                         onClick={() => startEditing(item)}
                       >
@@ -310,7 +339,14 @@ export function WatchlistPage() {
                       placeholder="earnings, swing"
                       value={editingTagsInput}
                       error={editingFieldError ?? undefined}
-                      onChange={(event) => setEditingTagsInput(event.target.value)}
+                      onChange={(event) => {
+                        setEditingTagsInput(event.target.value);
+                        if (editingError || editingFieldError) {
+                          setEditingError(null);
+                          setEditingFieldError(null);
+                        }
+                      }}
+                      disabled={isSaving}
                     />
 
                     <div className="flex flex-wrap gap-2">
@@ -356,6 +392,7 @@ export function WatchlistPage() {
         <EmptyState
           title="Your watchlist is empty."
           description="Add your first ticker to start organizing ideas and route into event creation."
+          action={<span className="text-sm text-stone-500">Use the Add ticker form above to get started.</span>}
         />
       )}
     </div>

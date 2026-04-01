@@ -65,25 +65,43 @@ export function LoginPage() {
             autoComplete="email"
             error={fieldErrors.email}
             label="Email"
-            onChange={(event) => setEmail(event.target.value)}
+            onChange={(event) => {
+              setEmail(event.target.value);
+              if (fieldErrors.email || formError) {
+                setFieldErrors((current) => ({ ...current, email: '' }));
+                setFormError(null);
+              }
+            }}
             placeholder="you@example.com"
             type="email"
             value={email}
+            disabled={isSubmitting}
           />
           <Input
             id="login-password"
             autoComplete="current-password"
             error={fieldErrors.password}
             label="Password"
-            onChange={(event) => setPassword(event.target.value)}
+            onChange={(event) => {
+              setPassword(event.target.value);
+              if (fieldErrors.password || formError) {
+                setFieldErrors((current) => ({ ...current, password: '' }));
+                setFormError(null);
+              }
+            }}
             placeholder="Minimum 8 characters"
             type="password"
             value={password}
+            disabled={isSubmitting}
           />
           <Button fullWidth disabled={isSubmitting} type="submit">
             {isSubmitting ? 'Logging in...' : 'Log in'}
           </Button>
         </form>
+
+        <p className="text-xs leading-5 text-stone-500">
+          If your session expired or the security check fails, refresh the page and try again.
+        </p>
       </Card>
 
       <p className="text-center text-sm text-stone-600">

@@ -74,7 +74,7 @@ export function PageShell({ children }: PageShellProps) {
                 <NavItem key={item.to} {...item} />
               ))}
               <Button className="ml-auto" disabled={isLoggingOut} variant="ghost" onClick={() => void handleLogout()}>
-                Logout
+                {isLoggingOut ? 'Logging out...' : 'Logout'}
               </Button>
             </div>
           ) : null}

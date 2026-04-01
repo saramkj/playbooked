@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { EmptyState } from '../components/EmptyState';
 import { ErrorBanner } from '../components/ErrorBanner';
@@ -65,8 +66,8 @@ export function TradesPage() {
         <p className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-700">Trades</p>
         <h1 className="text-4xl font-semibold text-stone-950">Paper trades</h1>
         <p className="max-w-3xl text-base leading-7 text-stone-600">
-          Minimal planned-trade read view for this stage. Lifecycle actions like open, close, cancel, and plan editing
-          stay locked for the next step.
+          Review every paper trade here and open any one to save the plan, move it through the lifecycle,
+          and see the current status clearly.
         </p>
       </section>
 
@@ -74,6 +75,11 @@ export function TradesPage() {
         <EmptyState
           title="No paper trades yet."
           description="Create a planned paper trade from an event detail page after the playbook passes the Process Gate."
+          action={
+            <Link to="/events">
+              <Button variant="secondary">Go to events</Button>
+            </Link>
+          }
         />
       ) : (
         <div className="space-y-4">
@@ -91,6 +97,9 @@ export function TradesPage() {
               <p className="text-sm text-stone-600">
                 Created: {formatLocalDateTimeWithOffset(trade.created_at)}
               </p>
+              {trade.opened_at ? <p className="text-sm text-stone-500">Opened: {formatLocalDateTimeWithOffset(trade.opened_at)}</p> : null}
+              {trade.closed_at ? <p className="text-sm text-stone-500">Closed: {formatLocalDateTimeWithOffset(trade.closed_at)}</p> : null}
+              {trade.cancelled_at ? <p className="text-sm text-stone-500">Cancelled: {formatLocalDateTimeWithOffset(trade.cancelled_at)}</p> : null}
               <Link className="text-sm font-semibold text-amber-700 hover:text-amber-800" to={`/trades/${trade.paper_trade_id}`}>
                 Open trade
               </Link>

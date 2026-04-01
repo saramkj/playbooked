@@ -107,7 +107,7 @@ export async function apiFetch<T>(
   if (!response.ok) {
     throw new ApiError(
       response.status,
-      (payload as ApiErrorShape | null) ?? { message: 'Request failed.' },
+      (payload as ApiErrorShape | null) ?? { message: 'Unable to complete the request right now.' },
     );
   }
 
