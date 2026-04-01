@@ -1,5 +1,5 @@
 import { type ChangeEvent, type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { EmptyState } from '../components/EmptyState';
@@ -9,11 +9,13 @@ import { ApiError } from '../lib/api';
 import { formatLocalDateTimeWithOffset, getEventDetail, markEventCompleted, type EventDetailResponse } from '../lib/events';
 import { buildGatePreview, createPlaybook, getPlaybook, parseKeyMetricsInput, savePlaybook, type Playbook } from '../lib/playbooks';
 import { listTemplates, type Template } from '../lib/templates';
+import { attemptPaperTrade } from '../lib/trades';
 import { useSession } from '../session/useSession';
 
 export function EventDetailPage() {
   const { refreshSession } = useSession();
   const { event_id } = useParams();
+  const navigate = useNavigate();
   const [detail, setDetail] = useState<EventDetailResponse['data'] | null>(null);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [playbook, setPlaybook] = useState<Playbook | null>(null);
@@ -26,6 +28,14 @@ export function EventDetailPage() {
   const [selectedTemplateId, setSelectedTemplateId] = useState('');
   const [isCreatingPlaybook, setIsCreatingPlaybook] = useState(false);
   const [isSavingPlaybook, setIsSavingPlaybook] = useState(false);
+  const [isCreatingTrade, setIsCreatingTrade] = useState(false);
+  const [tradeActionError, setTradeActionError] = useState<string | null>(null);
+  const [gateAttemptErrors, setGateAttemptErrors] = useState<Array<{
+    gate: 'G1' | 'G2' | 'G3' | 'G4' | 'G5';
+    passed: false;
+    message: string;
+  }>>([]);
+  const [gateAttemptPassedCount, setGateAttemptPassedCount] = useState<number | null>(null);
   const [playbookForm, setPlaybookForm] = useState({
     thesis: '',
     keyMetricsInput: '',
@@ -48,6 +58,7 @@ export function EventDetailPage() {
     try {
       const response = await getEventDetail(event_id);
       setDetail(response.data);
+      setTradeActionError(null);
       return response.data;
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
@@ -170,6 +181,11 @@ export function EventDetailPage() {
     return buildGatePreview(playbook, playbookTemplate.checklist_items);
   }, [playbook, playbookTemplate]);
 
+  const gateFailuresByCode = useMemo(
+    () => new Map(gateAttemptErrors.map((gateError) => [gateError.gate, gateError.message])),
+    [gateAttemptErrors],
+  );
+
   async function handleMarkCompleted() {
     if (!event_id) {
       return;
@@ -195,6 +211,58 @@ export function EventDetailPage() {
       setActionError('Unable to mark this event as completed right now.');
     } finally {
       setIsMarkingCompleted(false);
+    }
+  }
+
+  async function handleCreatePaperTrade() {
+    if (!playbook) {
+      setTradeActionError('Create a playbook first.');
+      return;
+    }
+
+    setIsCreatingTrade(true);
+    setTradeActionError(null);
+    setGateAttemptErrors([]);
+    setGateAttemptPassedCount(null);
+
+    try {
+      const response = await attemptPaperTrade(playbook.playbook_id);
+      await loadEventDetail();
+      navigate(response.redirect_url);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        if (error.status === 401) {
+          await refreshSession();
+          return;
+        }
+
+        if (error.status === 409 && error.conflictType === 'planned_trade_exists' && error.plannedTradeId) {
+          setDetail((current) => (
+            current
+              ? {
+                  ...current,
+                  planned_trade_id: error.plannedTradeId ?? current.planned_trade_id,
+                }
+              : current
+          ));
+          setTradeActionError(error.message);
+          return;
+        }
+
+        if (error.status === 422 && error.gateErrors) {
+          setTradeActionError(error.message);
+          setGateAttemptErrors(error.gateErrors);
+          setGateAttemptPassedCount(error.passedGateCount ?? null);
+          return;
+        }
+
+        setTradeActionError(error.message);
+        return;
+      }
+
+      setTradeActionError('Unable to create this paper trade right now.');
+    } finally {
+      setIsCreatingTrade(false);
     }
   }
 
@@ -320,8 +388,8 @@ export function EventDetailPage() {
         <p className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-700">Event detail</p>
         <h1 className="text-4xl font-semibold text-stone-950">{detail.watchlist_item.ticker}</h1>
         <p className="max-w-3xl text-base leading-7 text-stone-600">
-          This page is now backed by the real event detail contract. Playbook and trade sections stay
-          intentionally stubbed until those stages are implemented.
+          This page now uses the real event, playbook, and process-gate attempt flow. Trade lifecycle actions
+          beyond planned creation remain intentionally stubbed for the next stage.
         </p>
       </section>
 
@@ -591,7 +659,9 @@ export function EventDetailPage() {
               <div>
                 <p className="text-sm text-stone-500">Process Gate preview</p>
                 <h2 className="mt-1 text-2xl font-semibold text-stone-950">
-                  {gatePreview ? `${gatePreview.passedGateCount}/5 gates passed` : 'Complete a playbook to preview gates'}
+                  {gatePreview
+                    ? `${gateAttemptPassedCount ?? gatePreview.passedGateCount}/5 gates passed`
+                    : 'Complete a playbook to preview gates'}
                 </h2>
               </div>
               <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-amber-800">
@@ -600,6 +670,12 @@ export function EventDetailPage() {
             </div>
             {gatePreview ? (
               <div className="space-y-3">
+                {tradeActionError ? (
+                  <ErrorBanner
+                    title={detail.planned_trade_id ? 'Planned trade state updated' : 'Process Gate blocked'}
+                    message={tradeActionError}
+                  />
+                ) : null}
                 {gatePreview.gates.map((gate) => (
                   <div key={gate.gate} className="rounded-2xl border border-stone-200 px-4 py-3">
                     <div className="flex items-center justify-between gap-4">
@@ -608,13 +684,15 @@ export function EventDetailPage() {
                       </p>
                       <span
                         className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                          gate.passed ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+                          gateFailuresByCode.has(gate.gate) || !gate.passed
+                            ? 'bg-rose-100 text-rose-800'
+                            : 'bg-emerald-100 text-emerald-800'
                         }`}
                       >
-                        {gate.passed ? 'Pass' : 'Fail'}
+                        {gateFailuresByCode.has(gate.gate) || !gate.passed ? 'Fail' : 'Pass'}
                       </span>
                     </div>
-                    <p className="mt-2 text-sm text-stone-600">{gate.message}</p>
+                    <p className="mt-2 text-sm text-stone-600">{gateFailuresByCode.get(gate.gate) ?? gate.message}</p>
                   </div>
                 ))}
               </div>
@@ -625,11 +703,21 @@ export function EventDetailPage() {
             )}
             <div className="flex flex-wrap gap-3">
               {detail.planned_trade_id ? (
-                <Link to={`/trades/${detail.planned_trade_id}`}>
-                  <Button variant="secondary">View planned trade</Button>
-                </Link>
+                <>
+                  <div className="w-full rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                    Planned trade already exists for this playbook.
+                  </div>
+                  <Link to={`/trades/${detail.planned_trade_id}`}>
+                    <Button variant="secondary">View planned trade</Button>
+                  </Link>
+                </>
               ) : (
-                <Button disabled>Create Paper Trade</Button>
+                <Button
+                  disabled={!playbook || isCreatingTrade}
+                  onClick={() => void handleCreatePaperTrade()}
+                >
+                  {isCreatingTrade ? 'Creating planned trade...' : 'Create Paper Trade'}
+                </Button>
               )}
             </div>
           </Card>

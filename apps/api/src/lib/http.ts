@@ -4,7 +4,14 @@ type ErrorBody = {
   message: string;
   code?: string;
   field_errors?: Record<string, string>;
+  gate_errors?: Array<{
+    gate: "G1" | "G2" | "G3" | "G4" | "G5";
+    passed: false;
+    message: string;
+  }>;
+  passed_gate_count?: number | null;
   conflict_type?: string;
+  planned_trade_id?: string;
 };
 
 export class ApiError extends Error {

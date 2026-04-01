@@ -1,6 +1,7 @@
 import {
   EventStatus,
   EventType,
+  PaperTradeStatus,
   type Prisma,
 } from "@prisma/client";
 import express from "express";
@@ -273,6 +274,15 @@ eventsRouter.get("/:event_id", async (req, res, next) => {
                 checklistItemsJson: true,
               },
             },
+            paperTrades: {
+              where: {
+                status: PaperTradeStatus.PLANNED,
+              },
+              select: {
+                id: true,
+              },
+              take: 1,
+            },
           },
         },
       },
@@ -304,7 +314,7 @@ eventsRouter.get("/:event_id", async (req, res, next) => {
               }),
             }
           : null,
-        planned_trade_id: null,
+        planned_trade_id: event.playbook?.paperTrades[0]?.id ?? null,
       },
     });
   } catch (error) {

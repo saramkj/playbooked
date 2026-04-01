@@ -6,6 +6,14 @@ export type TemplateChecklistItem = {
   help_text?: string;
 };
 
+export type GateCode = "G1" | "G2" | "G3" | "G4" | "G5";
+
+export type GateResult = {
+  gate: GateCode;
+  passed: boolean;
+  message: string;
+};
+
 export type PlaybookPreviewInput = {
   thesis: string | null;
   keyMetricsJson: unknown;
@@ -63,20 +71,52 @@ export function parseChecklistState(checklistStateJson: unknown) {
 }
 
 export function calculatePassedGateCount(input: PlaybookPreviewInput) {
+  return evaluateProcessGate(input).passedGateCount;
+}
+
+export function evaluateProcessGate(input: PlaybookPreviewInput) {
   const thesis = input.thesis?.trim() ?? "";
   const keyMetrics = parseKeyMetrics(input.keyMetricsJson).map((metric) => metric.trim()).filter(Boolean);
   const invalidationRule = input.invalidationRule?.trim() ?? "";
   const maxLossPercent = input.maxLossPercent === null ? null : Number(input.maxLossPercent);
   const checklistState = parseChecklistState(input.checklistStateJson);
   const checklistItems = parseTemplateChecklistItems(input.checklistItemsJson);
+  const checklistComplete = checklistItems.every((item) => checklistState[item.id] === true);
 
-  const gateResults = [
-    thesis.length >= 200,
-    keyMetrics.length >= 1,
-    invalidationRule.length >= 50,
-    maxLossPercent !== null && Number.isFinite(maxLossPercent) && maxLossPercent > 0,
-    checklistItems.every((item) => checklistState[item.id] === true),
+  const gateResults: GateResult[] = [
+    {
+      gate: "G1",
+      passed: thesis.length >= 200,
+      message: "Thesis must be at least 200 characters.",
+    },
+    {
+      gate: "G2",
+      passed: keyMetrics.length >= 1,
+      message: "Add at least one key metric.",
+    },
+    {
+      gate: "G3",
+      passed: invalidationRule.length >= 50,
+      message: "Invalidation rule must be at least 50 characters.",
+    },
+    {
+      gate: "G4",
+      passed: maxLossPercent !== null && Number.isFinite(maxLossPercent) && maxLossPercent > 0,
+      message: "Max loss percent must be greater than 0.",
+    },
+    {
+      gate: "G5",
+      passed: checklistComplete,
+      message: "Complete every checklist item.",
+    },
   ];
+  const passedGateCount = gateResults.filter((gate) => gate.passed).length;
 
-  return gateResults.filter(Boolean).length;
+  return {
+    gateResults,
+    gateErrors: gateResults.filter((gate) => !gate.passed),
+    passedGateCount,
+    totalGates: gateResults.length,
+    allPassed: gateResults.every((gate) => gate.passed),
+  };
 }

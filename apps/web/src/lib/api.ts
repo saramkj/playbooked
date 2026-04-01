@@ -2,21 +2,38 @@ export type ApiErrorShape = {
   message: string;
   code?: string;
   field_errors?: Record<string, string>;
+  gate_errors?: Array<{
+    gate: 'G1' | 'G2' | 'G3' | 'G4' | 'G5';
+    passed: false;
+    message: string;
+  }>;
+  passed_gate_count?: number | null;
   conflict_type?: string;
+  planned_trade_id?: string;
 };
 
 export class ApiError extends Error {
   status: number;
   code?: string;
   fieldErrors?: Record<string, string>;
+  gateErrors?: Array<{
+    gate: 'G1' | 'G2' | 'G3' | 'G4' | 'G5';
+    passed: false;
+    message: string;
+  }>;
+  passedGateCount?: number | null;
   conflictType?: string;
+  plannedTradeId?: string;
 
   constructor(status: number, body: ApiErrorShape) {
     super(body.message);
     this.status = status;
     this.code = body.code;
     this.fieldErrors = body.field_errors;
+    this.gateErrors = body.gate_errors;
+    this.passedGateCount = body.passed_gate_count;
     this.conflictType = body.conflict_type;
+    this.plannedTradeId = body.planned_trade_id;
   }
 }
 
