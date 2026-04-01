@@ -19,6 +19,29 @@ const listPaperTradesQuerySchema = z.object({
   status: z.enum(statusValues).optional(),
 });
 
+const savePlanSchema = z.object({
+  entry_plan: z.string(),
+  stop_rule: z.string(),
+  take_profit_rule: z.string(),
+  position_size: z.number().positive("Position size must be greater than 0."),
+});
+
+const markOpenSchema = z.object({
+  confirm: z.boolean().refine((value) => value === true, {
+    message: "Confirm before opening the trade.",
+  }),
+});
+
+const closeTradeSchema = z.object({
+  pnl_percent: z.number().min(-100, "P/L must be between -100 and 1000.").max(1000, "P/L must be between -100 and 1000."),
+  outcome_notes: z.string().optional(),
+  post_mortem_notes: z.string().optional(),
+});
+
+const cancelTradeSchema = z.object({
+  cancel_reason: z.string().trim().min(1, "Cancel reason is required."),
+});
+
 function assertPaperTradeId(value: string) {
   if (!paperTradeIdSchema.safeParse(value).success) {
     throw new ApiError(404, { message: "Not found." });
@@ -67,6 +90,45 @@ function serializePaperTradeStatus(value: PaperTradeStatus) {
 
 function serializeDecimal(value: Prisma.Decimal | null) {
   return value === null ? null : Number(value);
+}
+
+function normalizeOptionalText(value?: string) {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
+}
+
+function buildInvalidTransitionError() {
+  return new ApiError(409, {
+    message: "That transition is not allowed.",
+    conflict_type: "invalid_transition",
+  });
+}
+
+function getOpenValidationErrors(trade: {
+  entryPlan: string | null;
+  stopRule: string | null;
+  takeProfitRule: string | null;
+  positionSize: Prisma.Decimal | null;
+}) {
+  const fieldErrors: Record<string, string> = {};
+
+  if (!trade.entryPlan?.trim()) {
+    fieldErrors.entry_plan = "Entry plan is required before opening.";
+  }
+
+  if (!trade.stopRule?.trim()) {
+    fieldErrors.stop_rule = "Stop rule is required before opening.";
+  }
+
+  if (!trade.takeProfitRule?.trim()) {
+    fieldErrors.take_profit_rule = "Take profit rule is required before opening.";
+  }
+
+  if (trade.positionSize === null || Number(trade.positionSize) <= 0) {
+    fieldErrors.position_size = "Position size must be greater than 0 before opening.";
+  }
+
+  return fieldErrors;
 }
 
 paperTradesRouter.use(requireAuth);
@@ -358,6 +420,297 @@ paperTradesRouter.get("/paper_trades/:paper_trade_id", async (req, res, next) =>
         closed_at: trade.closedAt ? trade.closedAt.toISOString() : null,
         cancelled_at: trade.cancelledAt ? trade.cancelledAt.toISOString() : null,
       },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+paperTradesRouter.put("/paper_trades/:paper_trade_id/plan", async (req, res, next) => {
+  try {
+    assertPaperTradeId(req.params.paper_trade_id);
+
+    const result = savePlanSchema.safeParse(req.body);
+
+    if (!result.success) {
+      throw new ApiError(422, {
+        message: "Validation failed.",
+        field_errors: getFieldErrors(result.error),
+      });
+    }
+
+    const trade = await prisma.paperTrade.findFirst({
+      where: {
+        id: req.params.paper_trade_id,
+        userId: req.auth!.userId,
+      },
+      select: {
+        id: true,
+        status: true,
+      },
+    });
+
+    if (!trade) {
+      throw new ApiError(404, { message: "Not found." });
+    }
+
+    if (trade.status !== PaperTradeStatus.PLANNED && trade.status !== PaperTradeStatus.OPEN) {
+      throw buildInvalidTransitionError();
+    }
+
+    await prisma.paperTrade.update({
+      where: {
+        id: trade.id,
+      },
+      data: {
+        entryPlan: result.data.entry_plan.trim(),
+        stopRule: result.data.stop_rule.trim(),
+        takeProfitRule: result.data.take_profit_rule.trim(),
+        positionSize: result.data.position_size,
+      },
+    });
+
+    res.status(200).json({
+      data: {
+        paper_trade_id: trade.id,
+      },
+      message: "Plan saved.",
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+paperTradesRouter.post("/paper_trades/:paper_trade_id/mark_open", async (req, res, next) => {
+  try {
+    assertPaperTradeId(req.params.paper_trade_id);
+
+    const result = markOpenSchema.safeParse(req.body);
+
+    if (!result.success) {
+      throw new ApiError(422, {
+        message: "Validation failed.",
+        field_errors: getFieldErrors(result.error),
+      });
+    }
+
+    const trade = await prisma.paperTrade.findFirst({
+      where: {
+        id: req.params.paper_trade_id,
+        userId: req.auth!.userId,
+      },
+      select: {
+        id: true,
+        playbookId: true,
+        status: true,
+        entryPlan: true,
+        stopRule: true,
+        takeProfitRule: true,
+        positionSize: true,
+      },
+    });
+
+    if (!trade) {
+      throw new ApiError(404, { message: "Not found." });
+    }
+
+    if (trade.status !== PaperTradeStatus.PLANNED) {
+      throw buildInvalidTransitionError();
+    }
+
+    const fieldErrors = getOpenValidationErrors(trade);
+
+    if (Object.keys(fieldErrors).length > 0) {
+      throw new ApiError(422, {
+        message: "Validation failed.",
+        field_errors: fieldErrors,
+      });
+    }
+
+    const openedAt = new Date();
+
+    await prisma.$transaction(async (tx) => {
+      await tx.paperTrade.update({
+        where: {
+          id: trade.id,
+        },
+        data: {
+          status: PaperTradeStatus.OPEN,
+          openedAt,
+        },
+      });
+
+      await tx.playbook.update({
+        where: {
+          id: trade.playbookId,
+        },
+        data: {
+          isLocked: true,
+          lockedAt: openedAt,
+        },
+      });
+    });
+
+    res.status(200).json({
+      data: {
+        paper_trade_id: trade.id,
+        status: "open",
+        opened_at: openedAt.toISOString(),
+      },
+      message: "Trade opened.",
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+paperTradesRouter.post("/paper_trades/:paper_trade_id/close", async (req, res, next) => {
+  try {
+    assertPaperTradeId(req.params.paper_trade_id);
+
+    const result = closeTradeSchema.safeParse(req.body);
+
+    if (!result.success) {
+      throw new ApiError(422, {
+        message: "Validation failed.",
+        field_errors: getFieldErrors(result.error),
+      });
+    }
+
+    const trade = await prisma.paperTrade.findFirst({
+      where: {
+        id: req.params.paper_trade_id,
+        userId: req.auth!.userId,
+      },
+      select: {
+        id: true,
+        status: true,
+      },
+    });
+
+    if (!trade) {
+      throw new ApiError(404, { message: "Not found." });
+    }
+
+    if (trade.status !== PaperTradeStatus.OPEN) {
+      throw buildInvalidTransitionError();
+    }
+
+    const closedAt = new Date();
+    const outcome = result.data.pnl_percent > 0 ? "win" : result.data.pnl_percent < 0 ? "loss" : "flat";
+
+    await prisma.paperTrade.update({
+      where: {
+        id: trade.id,
+      },
+      data: {
+        status: PaperTradeStatus.CLOSED,
+        pnlPercent: result.data.pnl_percent,
+        outcomeNotes: normalizeOptionalText(result.data.outcome_notes),
+        postMortemNotes: normalizeOptionalText(result.data.post_mortem_notes),
+        closedAt,
+      },
+    });
+
+    res.status(200).json({
+      data: {
+        paper_trade_id: trade.id,
+        status: "closed",
+        closed_at: closedAt.toISOString(),
+        pnl_percent: result.data.pnl_percent,
+        outcome,
+      },
+      message: "Trade closed.",
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+paperTradesRouter.post("/paper_trades/:paper_trade_id/cancel", async (req, res, next) => {
+  try {
+    assertPaperTradeId(req.params.paper_trade_id);
+
+    const result = cancelTradeSchema.safeParse(req.body);
+
+    if (!result.success) {
+      throw new ApiError(422, {
+        message: "Validation failed.",
+        field_errors: getFieldErrors(result.error),
+      });
+    }
+
+    const trade = await prisma.paperTrade.findFirst({
+      where: {
+        id: req.params.paper_trade_id,
+        userId: req.auth!.userId,
+      },
+      select: {
+        id: true,
+        playbookId: true,
+        status: true,
+      },
+    });
+
+    if (!trade) {
+      throw new ApiError(404, { message: "Not found." });
+    }
+
+    if (trade.status !== PaperTradeStatus.PLANNED && trade.status !== PaperTradeStatus.OPEN) {
+      throw buildInvalidTransitionError();
+    }
+
+    const cancelledAt = new Date();
+
+    await prisma.$transaction(async (tx) => {
+      await tx.paperTrade.update({
+        where: {
+          id: trade.id,
+        },
+        data: {
+          status: PaperTradeStatus.CANCELLED,
+          cancelReason: result.data.cancel_reason.trim(),
+          cancelledAt,
+        },
+      });
+
+      const playbookTrades = await tx.paperTrade.findMany({
+        where: {
+          playbookId: trade.playbookId,
+          userId: req.auth!.userId,
+        },
+        select: {
+          id: true,
+          status: true,
+        },
+      });
+
+      const canUnlock =
+        trade.status === PaperTradeStatus.PLANNED &&
+        playbookTrades.length === 1 &&
+        playbookTrades[0]?.id === trade.id &&
+        playbookTrades[0]?.status === PaperTradeStatus.CANCELLED;
+
+      if (canUnlock) {
+        await tx.playbook.update({
+          where: {
+            id: trade.playbookId,
+          },
+          data: {
+            isLocked: false,
+            lockedAt: null,
+          },
+        });
+      }
+    });
+
+    res.status(200).json({
+      data: {
+        paper_trade_id: trade.id,
+        status: "cancelled",
+        cancelled_at: cancelledAt.toISOString(),
+      },
+      message: "Trade cancelled.",
     });
   } catch (error) {
     next(error);

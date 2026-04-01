@@ -33,6 +33,8 @@ export type PaperTradeDetail = {
   cancelled_at: string | null;
 };
 
+export type TradeOutcome = 'win' | 'loss' | 'flat';
+
 type AttemptPaperTradeResponse = {
   trade_id: string;
   redirect_url: string;
@@ -45,6 +47,42 @@ type PaperTradesListResponse = {
 
 type PaperTradeDetailResponse = {
   data: PaperTradeDetail;
+};
+
+type SavePlanResponse = {
+  data: {
+    paper_trade_id: string;
+  };
+  message: string;
+};
+
+type MarkOpenResponse = {
+  data: {
+    paper_trade_id: string;
+    status: 'open';
+    opened_at: string;
+  };
+  message: string;
+};
+
+type CloseTradeResponse = {
+  data: {
+    paper_trade_id: string;
+    status: 'closed';
+    closed_at: string;
+    pnl_percent: number;
+    outcome: TradeOutcome;
+  };
+  message: string;
+};
+
+type CancelTradeResponse = {
+  data: {
+    paper_trade_id: string;
+    status: 'cancelled';
+    cancelled_at: string;
+  };
+  message: string;
 };
 
 export async function attemptPaperTrade(playbookId: string) {
@@ -69,4 +107,51 @@ export async function listPaperTrades(status?: TradeStatus) {
 
 export async function getPaperTrade(paperTradeId: string) {
   return apiFetch<PaperTradeDetailResponse>(`/api/paper_trades/${paperTradeId}`);
+}
+
+export async function savePaperTradePlan(
+  paperTradeId: string,
+  input: {
+    entry_plan: string;
+    stop_rule: string;
+    take_profit_rule: string;
+    position_size: number;
+  },
+) {
+  return apiFetch<SavePlanResponse>(`/api/paper_trades/${paperTradeId}/plan`, {
+    method: 'PUT',
+    body: input,
+  });
+}
+
+export async function markPaperTradeOpen(paperTradeId: string) {
+  return apiFetch<MarkOpenResponse>(`/api/paper_trades/${paperTradeId}/mark_open`, {
+    method: 'POST',
+    body: {
+      confirm: true,
+    },
+  });
+}
+
+export async function closePaperTrade(
+  paperTradeId: string,
+  input: {
+    pnl_percent: number;
+    outcome_notes?: string;
+    post_mortem_notes?: string;
+  },
+) {
+  return apiFetch<CloseTradeResponse>(`/api/paper_trades/${paperTradeId}/close`, {
+    method: 'POST',
+    body: input,
+  });
+}
+
+export async function cancelPaperTrade(paperTradeId: string, cancelReason: string) {
+  return apiFetch<CancelTradeResponse>(`/api/paper_trades/${paperTradeId}/cancel`, {
+    method: 'POST',
+    body: {
+      cancel_reason: cancelReason,
+    },
+  });
 }
