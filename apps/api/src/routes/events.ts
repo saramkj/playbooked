@@ -5,6 +5,7 @@ import {
 } from "@prisma/client";
 import express from "express";
 import { z } from "zod";
+import { calculatePassedGateCount } from "../lib/playbooks.js";
 import { ApiError } from "../lib/http.js";
 import { prisma } from "../lib/prisma.js";
 import { requireAuth } from "../middlewares/auth.js";
@@ -264,6 +265,16 @@ eventsRouter.get("/:event_id", async (req, res, next) => {
             tagsJson: true,
           },
         },
+        playbook: {
+          include: {
+            template: {
+              select: {
+                name: true,
+                checklistItemsJson: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -279,7 +290,20 @@ eventsRouter.get("/:event_id", async (req, res, next) => {
           ticker: event.watchlistItem.ticker,
           tags: serializeTags(event.watchlistItem.tagsJson),
         },
-        playbook_summary: null,
+        playbook_summary: event.playbook
+          ? {
+              playbook_id: event.playbook.id,
+              template_name: event.playbook.template.name,
+              passed_gate_count: calculatePassedGateCount({
+                thesis: event.playbook.thesis,
+                keyMetricsJson: event.playbook.keyMetricsJson,
+                invalidationRule: event.playbook.invalidationRule,
+                maxLossPercent: event.playbook.maxLossPercent,
+                checklistStateJson: event.playbook.checklistStateJson,
+                checklistItemsJson: event.playbook.template.checklistItemsJson,
+              }),
+            }
+          : null,
         planned_trade_id: null,
       },
     });
