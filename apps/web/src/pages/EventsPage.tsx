@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Button } from '../components/Button';
+import { getButtonClassName } from '../components/buttonStyles';
 import { Card } from '../components/Card';
 import { EmptyState } from '../components/EmptyState';
 import { ErrorBanner } from '../components/ErrorBanner';
@@ -53,8 +53,8 @@ export function EventsPage() {
           the current setup, and jump straight into the related event detail.
         </p>
         </div>
-        <Link to="/events/new">
-          <Button variant="secondary">Create event</Button>
+        <Link className={getButtonClassName({ variant: 'secondary' })} to="/events/new">
+          Create event
         </Link>
       </section>
 
@@ -93,11 +93,11 @@ export function EventsPage() {
           description="Create an event from your watchlist to start preparing around the next catalyst."
           action={
             <div className="flex flex-wrap gap-3">
-              <Link to="/watchlist">
-                <Button variant="secondary">Go to watchlist</Button>
+              <Link className={getButtonClassName({ variant: 'secondary' })} to="/watchlist">
+                Go to watchlist
               </Link>
-              <Link to="/events/new">
-                <Button variant="ghost">Create event</Button>
+              <Link className={getButtonClassName({ variant: 'ghost' })} to="/events/new">
+                Create event
               </Link>
             </div>
           }

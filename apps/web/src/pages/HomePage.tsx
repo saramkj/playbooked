@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '../components/Button';
+import { getButtonClassName } from '../components/buttonStyles';
 import { Card } from '../components/Card';
 
 const gateItems = [
@@ -51,11 +52,11 @@ export function HomePage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <Link to="/signup">
-              <Button>Create an account</Button>
+            <Link className={getButtonClassName({})} to="/signup">
+              Create an account
             </Link>
-            <Link to="/login">
-              <Button variant="secondary">Log in</Button>
+            <Link className={getButtonClassName({ variant: 'secondary' })} to="/login">
+              Log in
             </Link>
           </div>
         </div>

@@ -305,15 +305,29 @@ export function TradeDetailPage() {
   }
 
   if (pageError) {
-    return <ErrorBanner message={pageError} />;
+    return (
+      <div className="space-y-6">
+        <section className="space-y-3">
+          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-700">Trade detail</p>
+          <h1 className="text-4xl font-semibold text-stone-950">Trade detail</h1>
+        </section>
+        <ErrorBanner message={pageError} />
+      </div>
+    );
   }
 
   if (!trade) {
     return (
-      <EmptyState
-        title="Trade not found."
-        description="This paper trade may have been removed or is no longer visible to your session."
-      />
+      <div className="space-y-6">
+        <section className="space-y-3">
+          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-700">Trade detail</p>
+          <h1 className="text-4xl font-semibold text-stone-950">Trade not found</h1>
+        </section>
+        <EmptyState
+          title="Trade not found."
+          description="This paper trade may have been removed or is no longer visible to your session."
+        />
+      </div>
     );
   }
 
@@ -373,6 +387,8 @@ export function TradeDetailPage() {
               <label className="block space-y-2">
                 <span className="text-sm font-medium text-stone-800">Entry plan</span>
                 <textarea
+                  aria-describedby={fieldErrors.entry_plan ? 'trade-entry-plan-error' : undefined}
+                  aria-invalid={Boolean(fieldErrors.entry_plan)}
                   className={`min-h-24 w-full rounded-xl border px-3 py-2.5 text-sm text-stone-900 shadow-sm outline-none transition focus:ring-2 focus:ring-amber-500 ${
                     fieldErrors.entry_plan ? 'border-rose-300 bg-rose-50' : 'border-stone-300 bg-white'
                   }`}
@@ -386,12 +402,18 @@ export function TradeDetailPage() {
                     }
                   }}
                 />
-                {fieldErrors.entry_plan ? <p className="text-sm text-rose-700">{fieldErrors.entry_plan}</p> : null}
+                {fieldErrors.entry_plan ? (
+                  <p id="trade-entry-plan-error" className="text-sm font-medium text-rose-700">
+                    Error: {fieldErrors.entry_plan}
+                  </p>
+                ) : null}
               </label>
 
               <label className="block space-y-2">
                 <span className="text-sm font-medium text-stone-800">Stop rule</span>
                 <textarea
+                  aria-describedby={fieldErrors.stop_rule ? 'trade-stop-rule-error' : undefined}
+                  aria-invalid={Boolean(fieldErrors.stop_rule)}
                   className={`min-h-24 w-full rounded-xl border px-3 py-2.5 text-sm text-stone-900 shadow-sm outline-none transition focus:ring-2 focus:ring-amber-500 ${
                     fieldErrors.stop_rule ? 'border-rose-300 bg-rose-50' : 'border-stone-300 bg-white'
                   }`}
@@ -405,12 +427,18 @@ export function TradeDetailPage() {
                     }
                   }}
                 />
-                {fieldErrors.stop_rule ? <p className="text-sm text-rose-700">{fieldErrors.stop_rule}</p> : null}
+                {fieldErrors.stop_rule ? (
+                  <p id="trade-stop-rule-error" className="text-sm font-medium text-rose-700">
+                    Error: {fieldErrors.stop_rule}
+                  </p>
+                ) : null}
               </label>
 
               <label className="block space-y-2">
                 <span className="text-sm font-medium text-stone-800">Take profit rule</span>
                 <textarea
+                  aria-describedby={fieldErrors.take_profit_rule ? 'trade-take-profit-error' : undefined}
+                  aria-invalid={Boolean(fieldErrors.take_profit_rule)}
                   className={`min-h-24 w-full rounded-xl border px-3 py-2.5 text-sm text-stone-900 shadow-sm outline-none transition focus:ring-2 focus:ring-amber-500 ${
                     fieldErrors.take_profit_rule ? 'border-rose-300 bg-rose-50' : 'border-stone-300 bg-white'
                   }`}
@@ -424,12 +452,18 @@ export function TradeDetailPage() {
                     }
                   }}
                 />
-                {fieldErrors.take_profit_rule ? <p className="text-sm text-rose-700">{fieldErrors.take_profit_rule}</p> : null}
+                {fieldErrors.take_profit_rule ? (
+                  <p id="trade-take-profit-error" className="text-sm font-medium text-rose-700">
+                    Error: {fieldErrors.take_profit_rule}
+                  </p>
+                ) : null}
               </label>
 
               <label className="block space-y-2">
                 <span className="text-sm font-medium text-stone-800">Position size</span>
                 <input
+                  aria-describedby={fieldErrors.position_size ? 'trade-position-size-error' : undefined}
+                  aria-invalid={Boolean(fieldErrors.position_size)}
                   className={`w-full rounded-xl border px-3 py-2.5 text-sm text-stone-900 shadow-sm outline-none transition focus:ring-2 focus:ring-amber-500 ${
                     fieldErrors.position_size ? 'border-rose-300 bg-rose-50' : 'border-stone-300 bg-white'
                   }`}
@@ -446,7 +480,11 @@ export function TradeDetailPage() {
                     }
                   }}
                 />
-                {fieldErrors.position_size ? <p className="text-sm text-rose-700">{fieldErrors.position_size}</p> : null}
+                {fieldErrors.position_size ? (
+                  <p id="trade-position-size-error" className="text-sm font-medium text-rose-700">
+                    Error: {fieldErrors.position_size}
+                  </p>
+                ) : null}
               </label>
 
               {isPlanEditable ? (
@@ -496,6 +534,8 @@ export function TradeDetailPage() {
               <label className="block space-y-2">
                 <span className="text-sm font-medium text-stone-800">P/L percent</span>
                 <input
+                  aria-describedby={fieldErrors.pnl_percent ? 'trade-pnl-percent-error' : undefined}
+                  aria-invalid={Boolean(fieldErrors.pnl_percent)}
                   className={`w-full rounded-xl border px-3 py-2.5 text-sm text-stone-900 shadow-sm outline-none transition focus:ring-2 focus:ring-amber-500 ${
                     fieldErrors.pnl_percent ? 'border-rose-300 bg-rose-50' : 'border-stone-300 bg-white'
                   }`}
@@ -513,7 +553,11 @@ export function TradeDetailPage() {
                     }
                   }}
                 />
-                {fieldErrors.pnl_percent ? <p className="text-sm text-rose-700">{fieldErrors.pnl_percent}</p> : null}
+                {fieldErrors.pnl_percent ? (
+                  <p id="trade-pnl-percent-error" className="text-sm font-medium text-rose-700">
+                    Error: {fieldErrors.pnl_percent}
+                  </p>
+                ) : null}
               </label>
 
               <label className="block space-y-2">
@@ -550,6 +594,8 @@ export function TradeDetailPage() {
               <label className="block space-y-2">
                 <span className="text-sm font-medium text-stone-800">Cancel reason</span>
                 <textarea
+                  aria-describedby={fieldErrors.cancel_reason ? 'trade-cancel-reason-error' : undefined}
+                  aria-invalid={Boolean(fieldErrors.cancel_reason)}
                   className={`min-h-24 w-full rounded-xl border px-3 py-2.5 text-sm text-stone-900 shadow-sm outline-none transition focus:ring-2 focus:ring-amber-500 ${
                     fieldErrors.cancel_reason ? 'border-rose-300 bg-rose-50' : 'border-stone-300 bg-white'
                   }`}
@@ -563,7 +609,11 @@ export function TradeDetailPage() {
                     }
                   }}
                 />
-                {fieldErrors.cancel_reason ? <p className="text-sm text-rose-700">{fieldErrors.cancel_reason}</p> : null}
+                {fieldErrors.cancel_reason ? (
+                  <p id="trade-cancel-reason-error" className="text-sm font-medium text-rose-700">
+                    Error: {fieldErrors.cancel_reason}
+                  </p>
+                ) : null}
               </label>
               {canCancel ? (
                 <Button disabled={isCancelling} variant="ghost" onClick={() => void handleCancelTrade()}>

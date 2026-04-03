@@ -14,3 +14,16 @@ This app helps retail investors build discipline by forcing a pre-trade process 
 ## Compliance note
 
 Educational tool for process discipline; not investment advice; paper trading only.
+
+## Accessibility notes
+
+- Added semantic app-shell landmarks with a keyboard-visible skip link and route-change focus targeting the main page heading.
+- Strengthened visible focus styles across links, buttons, inputs, textareas, and selects.
+- Replaced nested link/button patterns with single semantic interactive elements and improved form field error associations with `aria-invalid` and `aria-describedby`.
+
+Manual checks to run:
+
+- Navigate the app using keyboard only, including the skip link, primary nav, auth actions, and page-level CTA links.
+- Confirm focus moves to the main heading after each SPA route change.
+- Submit each form with invalid or empty required values and verify the visible error text is announced, associated with the field, and not conveyed by color alone.
+- Review the main pages at normal zoom and increased zoom for readable contrast and preserved focus visibility.

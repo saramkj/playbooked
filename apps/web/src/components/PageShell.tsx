@@ -1,6 +1,7 @@
-import { type ReactNode, useState } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from './Button';
+import { getButtonClassName } from './buttonStyles';
 import { useSession } from '../session/useSession';
 
 const authedNavItems = [
@@ -32,8 +33,26 @@ function NavItem({ label, to }: { label: string; to: string }) {
 
 export function PageShell({ children }: PageShellProps) {
   const { isAuthenticated, isLoading, signOut } = useSession();
+  const location = useLocation();
   const navigate = useNavigate();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const mainRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const frameId = window.requestAnimationFrame(() => {
+      const heading = mainRef.current?.querySelector('h1');
+
+      if (heading instanceof HTMLElement) {
+        heading.tabIndex = -1;
+        heading.focus();
+        return;
+      }
+
+      mainRef.current?.focus();
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [location.pathname, location.search]);
 
   async function handleLogout() {
     setIsLoggingOut(true);
@@ -48,6 +67,12 @@ export function PageShell({ children }: PageShellProps) {
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(251,191,36,0.18),_transparent_35%),linear-gradient(180deg,_#fafaf9_0%,_#f5f5f4_100%)] text-stone-950">
+      <a
+        className="skip-link absolute left-4 top-4 z-50 rounded-lg bg-stone-950 px-4 py-2 text-sm font-semibold text-stone-50"
+        href="#main-content"
+      >
+        Skip to content
+      </a>
       <header className="border-b border-stone-200/80 bg-white/80 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-4">
@@ -61,27 +86,40 @@ export function PageShell({ children }: PageShellProps) {
                 <Link className="text-sm font-medium text-stone-700 hover:text-stone-950" to="/login">
                   Log in
                 </Link>
-                <Button variant="primary" onClick={() => navigate('/signup')}>
+                <Link className={getButtonClassName({ variant: 'primary' })} to="/signup">
                   Sign up
-                </Button>
+                </Link>
               </div>
             ) : null}
           </div>
 
           {isAuthenticated ? (
-            <div className="flex flex-wrap items-center gap-2 border-t border-stone-200 pt-3">
+            <nav aria-label="Primary" className="flex flex-wrap items-center gap-2 border-t border-stone-200 pt-3">
               {authedNavItems.map((item) => (
                 <NavItem key={item.to} {...item} />
               ))}
               <Button className="ml-auto" disabled={isLoggingOut} variant="ghost" onClick={() => void handleLogout()}>
                 {isLoggingOut ? 'Logging out...' : 'Logout'}
               </Button>
-            </div>
+            </nav>
           ) : null}
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">{children}</main>
+      <main
+        ref={mainRef}
+        id="main-content"
+        tabIndex={-1}
+        className="mx-auto max-w-6xl px-4 py-10 focus:outline-none sm:px-6 lg:px-8"
+      >
+        {children}
+      </main>
+
+      <footer className="border-t border-stone-200/80 bg-white/70">
+        <div className="mx-auto max-w-6xl px-4 py-4 text-sm text-stone-600 sm:px-6 lg:px-8">
+          Educational only. Not financial advice. Paper trading only.
+        </div>
+      </footer>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Button } from '../components/Button';
+import { getButtonClassName } from '../components/buttonStyles';
 import { Card } from '../components/Card';
 import { EmptyState } from '../components/EmptyState';
 import { ErrorBanner } from '../components/ErrorBanner';
@@ -76,8 +76,8 @@ export function TradesPage() {
           title="No paper trades yet."
           description="Create a planned paper trade from an event detail page after the playbook passes the Process Gate."
           action={
-            <Link to="/events">
-              <Button variant="secondary">Go to events</Button>
+            <Link className={getButtonClassName({ variant: 'secondary' })} to="/events">
+              Go to events
             </Link>
           }
         />

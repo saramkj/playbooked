@@ -1,6 +1,7 @@
 import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/Button';
+import { getButtonClassName } from '../components/buttonStyles';
 import { Card } from '../components/Card';
 import { EmptyState } from '../components/EmptyState';
 import { ErrorBanner } from '../components/ErrorBanner';
@@ -291,8 +292,11 @@ export function WatchlistPage() {
                     {isDeleting || isSaving ? (
                       <Button disabled variant="secondary">Create event</Button>
                     ) : (
-                      <Link to={`/events/new?watchlist_item_id=${item.watchlist_item_id}`}>
-                        <Button variant="secondary">Create event</Button>
+                      <Link
+                        className={getButtonClassName({ variant: 'secondary' })}
+                        to={`/events/new?watchlist_item_id=${item.watchlist_item_id}`}
+                      >
+                        Create event
                       </Link>
                     )}
                     {!isEditing ? (

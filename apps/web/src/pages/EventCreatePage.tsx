@@ -1,6 +1,7 @@
 import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '../components/Button';
+import { getButtonClassName } from '../components/buttonStyles';
 import { Card } from '../components/Card';
 import { EmptyState } from '../components/EmptyState';
 import { ErrorBanner } from '../components/ErrorBanner';
@@ -136,8 +137,8 @@ export function EventCreatePage() {
           title="You need a watchlist item first."
           description="Create a watchlist item before adding an event so the event stays tied to an owned ticker."
           action={
-            <Link to="/watchlist">
-              <Button variant="secondary">Go to watchlist</Button>
+            <Link className={getButtonClassName({ variant: 'secondary' })} to="/watchlist">
+              Go to watchlist
             </Link>
           }
         />
@@ -177,6 +178,8 @@ export function EventCreatePage() {
             <span className="text-sm font-medium text-stone-800">Watchlist item</span>
             <select
               id="watchlist-item"
+              aria-describedby={fieldErrors.watchlist_item_id ? 'watchlist-item-error' : undefined}
+              aria-invalid={Boolean(fieldErrors.watchlist_item_id)}
               className={`w-full rounded-xl border px-3 py-2.5 text-sm text-stone-900 shadow-sm outline-none transition focus:ring-2 focus:ring-amber-500 ${
                 fieldErrors.watchlist_item_id ? 'border-rose-300 bg-rose-50' : 'border-stone-300 bg-white'
               }`}
@@ -200,7 +203,9 @@ export function EventCreatePage() {
               ))}
             </select>
             {fieldErrors.watchlist_item_id ? (
-              <p className="text-sm text-rose-700">{fieldErrors.watchlist_item_id}</p>
+              <p id="watchlist-item-error" className="text-sm font-medium text-rose-700">
+                Error: {fieldErrors.watchlist_item_id}
+              </p>
             ) : null}
           </label>
 
@@ -208,6 +213,8 @@ export function EventCreatePage() {
             <span className="text-sm font-medium text-stone-800">Event type</span>
             <select
               id="event-type"
+              aria-describedby={fieldErrors.event_type ? 'event-type-error' : undefined}
+              aria-invalid={Boolean(fieldErrors.event_type)}
               className={`w-full rounded-xl border px-3 py-2.5 text-sm text-stone-900 shadow-sm outline-none transition focus:ring-2 focus:ring-amber-500 ${
                 fieldErrors.event_type ? 'border-rose-300 bg-rose-50' : 'border-stone-300 bg-white'
               }`}
@@ -227,7 +234,11 @@ export function EventCreatePage() {
                 </option>
               ))}
             </select>
-            {fieldErrors.event_type ? <p className="text-sm text-rose-700">{fieldErrors.event_type}</p> : null}
+            {fieldErrors.event_type ? (
+              <p id="event-type-error" className="text-sm font-medium text-rose-700">
+                Error: {fieldErrors.event_type}
+              </p>
+            ) : null}
           </label>
 
           <Input
@@ -271,8 +282,8 @@ export function EventCreatePage() {
             {isSubmitting ? (
               <Button disabled variant="secondary">Back to events</Button>
             ) : (
-              <Link to="/events">
-                <Button variant="secondary">Back to events</Button>
+              <Link className={getButtonClassName({ variant: 'secondary' })} to="/events">
+                Back to events
               </Link>
             )}
           </div>

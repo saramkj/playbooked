@@ -1,6 +1,7 @@
 import { type ChangeEvent, type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Button } from '../components/Button';
+import { getButtonClassName } from '../components/buttonStyles';
 import { Card } from '../components/Card';
 import { EmptyState } from '../components/EmptyState';
 import { ErrorBanner } from '../components/ErrorBanner';
@@ -382,15 +383,29 @@ export function EventDetailPage() {
   }
 
   if (pageError) {
-    return <ErrorBanner message={pageError} />;
+    return (
+      <div className="space-y-6">
+        <section className="space-y-3">
+          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-700">Event detail</p>
+          <h1 className="text-4xl font-semibold text-stone-950">Event detail</h1>
+        </section>
+        <ErrorBanner message={pageError} />
+      </div>
+    );
   }
 
   if (!detail) {
     return (
-      <EmptyState
-        title="Event not found."
-        description="This event may have been removed or is no longer visible to your session."
-      />
+      <div className="space-y-6">
+        <section className="space-y-3">
+          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-700">Event detail</p>
+          <h1 className="text-4xl font-semibold text-stone-950">Event not found</h1>
+        </section>
+        <EmptyState
+          title="Event not found."
+          description="This event may have been removed or is no longer visible to your session."
+        />
+      </div>
     );
   }
 
@@ -436,16 +451,16 @@ export function EventDetailPage() {
           <div className="space-y-2">
             <p className="text-sm text-stone-500">Tags</p>
             {detail.watchlist_item.tags.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
+              <ul className="m-0 flex list-none flex-wrap gap-2 p-0" aria-label={`${detail.watchlist_item.ticker} tags`}>
                 {detail.watchlist_item.tags.map((tag) => (
-                  <span
+                  <li
                     key={`${detail.watchlist_item.watchlist_item_id}-${tag}`}
                     className="rounded-full border border-stone-300 bg-stone-50 px-3 py-1 text-sm font-medium text-stone-700"
                   >
                     {tag}
-                  </span>
+                  </li>
                 ))}
-              </div>
+              </ul>
             ) : (
               <p className="text-sm text-stone-500">No tags yet.</p>
             )}
@@ -508,6 +523,8 @@ export function EventDetailPage() {
                     <span className="text-sm font-medium text-stone-800">Template</span>
                     <select
                       id="template-picker"
+                      aria-describedby={playbookFieldErrors.template_id ? 'template-picker-error' : undefined}
+                      aria-invalid={Boolean(playbookFieldErrors.template_id)}
                       className={`w-full rounded-xl border px-3 py-2.5 text-sm text-stone-900 shadow-sm outline-none transition focus:ring-2 focus:ring-amber-500 ${
                         playbookFieldErrors.template_id ? 'border-rose-300 bg-rose-50' : 'border-stone-300 bg-white'
                       }`}
@@ -536,7 +553,9 @@ export function EventDetailPage() {
                       ))}
                     </select>
                     {playbookFieldErrors.template_id ? (
-                      <p className="text-sm text-rose-700">{playbookFieldErrors.template_id}</p>
+                      <p id="template-picker-error" className="text-sm font-medium text-rose-700">
+                        Error: {playbookFieldErrors.template_id}
+                      </p>
                     ) : null}
                   </label>
                   {selectedTemplate ? (
@@ -580,6 +599,8 @@ export function EventDetailPage() {
                   <span className="text-sm font-medium text-stone-800">Thesis</span>
                   <textarea
                     id="playbook-thesis"
+                    aria-describedby={playbookFieldErrors.thesis ? 'playbook-thesis-error' : undefined}
+                    aria-invalid={Boolean(playbookFieldErrors.thesis)}
                     className={`min-h-36 w-full rounded-xl border px-3 py-2.5 text-sm text-stone-900 shadow-sm outline-none transition placeholder:text-stone-400 focus:ring-2 focus:ring-amber-500 ${
                       playbookFieldErrors.thesis ? 'border-rose-300 bg-rose-50' : 'border-stone-300 bg-white'
                     }`}
@@ -588,13 +609,22 @@ export function EventDetailPage() {
                     value={playbookForm.thesis}
                     onChange={(currentEvent) => handlePlaybookInputChange('thesis', currentEvent.target.value)}
                   />
-                  {playbookFieldErrors.thesis ? <p className="text-sm text-rose-700">{playbookFieldErrors.thesis}</p> : null}
+                  {playbookFieldErrors.thesis ? (
+                    <p id="playbook-thesis-error" className="text-sm font-medium text-rose-700">
+                      Error: {playbookFieldErrors.thesis}
+                    </p>
+                  ) : null}
                 </label>
 
                 <label className="block space-y-2" htmlFor="playbook-key-metrics">
                   <span className="text-sm font-medium text-stone-800">Key metrics</span>
                   <input
                     id="playbook-key-metrics"
+                    aria-describedby={[
+                      'playbook-key-metrics-hint',
+                      playbookFieldErrors.key_metrics ? 'playbook-key-metrics-error' : null,
+                    ].filter(Boolean).join(' ')}
+                    aria-invalid={Boolean(playbookFieldErrors.key_metrics)}
                     className={`w-full rounded-xl border px-3 py-2.5 text-sm text-stone-900 shadow-sm outline-none transition placeholder:text-stone-400 focus:ring-2 focus:ring-amber-500 ${
                       playbookFieldErrors.key_metrics ? 'border-rose-300 bg-rose-50' : 'border-stone-300 bg-white'
                     }`}
@@ -603,14 +633,20 @@ export function EventDetailPage() {
                     value={playbookForm.keyMetricsInput}
                     onChange={(currentEvent) => handlePlaybookInputChange('keyMetricsInput', currentEvent.target.value)}
                   />
-                  <p className="text-sm text-stone-500">Comma-separated, up to 20 metrics.</p>
-                  {playbookFieldErrors.key_metrics ? <p className="text-sm text-rose-700">{playbookFieldErrors.key_metrics}</p> : null}
+                  <p id="playbook-key-metrics-hint" className="text-sm text-stone-500">Comma-separated, up to 20 metrics.</p>
+                  {playbookFieldErrors.key_metrics ? (
+                    <p id="playbook-key-metrics-error" className="text-sm font-medium text-rose-700">
+                      Error: {playbookFieldErrors.key_metrics}
+                    </p>
+                  ) : null}
                 </label>
 
                 <label className="block space-y-2" htmlFor="playbook-invalidation">
                   <span className="text-sm font-medium text-stone-800">Invalidation rule</span>
                   <textarea
                     id="playbook-invalidation"
+                    aria-describedby={playbookFieldErrors.invalidation_rule ? 'playbook-invalidation-error' : undefined}
+                    aria-invalid={Boolean(playbookFieldErrors.invalidation_rule)}
                     className={`min-h-28 w-full rounded-xl border px-3 py-2.5 text-sm text-stone-900 shadow-sm outline-none transition placeholder:text-stone-400 focus:ring-2 focus:ring-amber-500 ${
                       playbookFieldErrors.invalidation_rule ? 'border-rose-300 bg-rose-50' : 'border-stone-300 bg-white'
                     }`}
@@ -620,7 +656,9 @@ export function EventDetailPage() {
                     onChange={(currentEvent) => handlePlaybookInputChange('invalidationRule', currentEvent.target.value)}
                   />
                   {playbookFieldErrors.invalidation_rule ? (
-                    <p className="text-sm text-rose-700">{playbookFieldErrors.invalidation_rule}</p>
+                    <p id="playbook-invalidation-error" className="text-sm font-medium text-rose-700">
+                      Error: {playbookFieldErrors.invalidation_rule}
+                    </p>
                   ) : null}
                 </label>
 
@@ -628,6 +666,8 @@ export function EventDetailPage() {
                   <span className="text-sm font-medium text-stone-800">Max loss percent</span>
                   <input
                     id="playbook-max-loss"
+                    aria-describedby={playbookFieldErrors.max_loss_percent ? 'playbook-max-loss-error' : undefined}
+                    aria-invalid={Boolean(playbookFieldErrors.max_loss_percent)}
                     className={`w-full rounded-xl border px-3 py-2.5 text-sm text-stone-900 shadow-sm outline-none transition placeholder:text-stone-400 focus:ring-2 focus:ring-amber-500 ${
                       playbookFieldErrors.max_loss_percent ? 'border-rose-300 bg-rose-50' : 'border-stone-300 bg-white'
                     }`}
@@ -639,12 +679,14 @@ export function EventDetailPage() {
                     onChange={(currentEvent) => handlePlaybookInputChange('maxLossPercent', currentEvent.target.value)}
                   />
                   {playbookFieldErrors.max_loss_percent ? (
-                    <p className="text-sm text-rose-700">{playbookFieldErrors.max_loss_percent}</p>
+                    <p id="playbook-max-loss-error" className="text-sm font-medium text-rose-700">
+                      Error: {playbookFieldErrors.max_loss_percent}
+                    </p>
                   ) : null}
                 </label>
 
-                <div className="space-y-3">
-                  <p className="text-sm font-medium text-stone-800">Checklist</p>
+                <fieldset className="space-y-3">
+                  <legend className="text-sm font-medium text-stone-800">Checklist</legend>
                   {playbookTemplate?.checklist_items.map((item) => (
                     <label key={item.id} className="flex items-start gap-3 rounded-2xl border border-stone-200 px-4 py-3">
                       <input
@@ -659,7 +701,7 @@ export function EventDetailPage() {
                       </span>
                     </label>
                   ))}
-                </div>
+                </fieldset>
 
                 <div className="flex flex-wrap gap-3">
                   <Button disabled={playbook.is_locked || isSavingPlaybook} type="submit">
@@ -723,8 +765,11 @@ export function EventDetailPage() {
                   <div className="w-full rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
                     A planned trade already exists for this playbook, so another one cannot be created right now.
                   </div>
-                  <Link to={`/trades/${detail.planned_trade_id}`}>
-                    <Button variant="secondary">View planned trade</Button>
+                  <Link
+                    className={getButtonClassName({ variant: 'secondary' })}
+                    to={`/trades/${detail.planned_trade_id}`}
+                  >
+                    View planned trade
                   </Link>
                 </>
               ) : (
