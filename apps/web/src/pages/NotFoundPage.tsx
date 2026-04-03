@@ -7,7 +7,7 @@ export function NotFoundPage() {
     <div className="space-y-6">
       <section className="space-y-3">
         <p className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-700">Not found</p>
-        <h1 className="text-4xl font-semibold text-stone-950">Page not found</h1>
+        <h1 className="text-3xl font-semibold text-stone-950 sm:text-4xl">Page not found</h1>
       </section>
       <EmptyState
         title="Page not found."

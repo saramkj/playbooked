@@ -19,5 +19,5 @@ export function getButtonClassName({
 }) {
   const widthClass = fullWidth ? 'w-full justify-center' : '';
 
-  return `inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600 disabled:cursor-not-allowed ${variantClasses[variant]} ${widthClass} ${className}`.trim();
+  return `inline-flex min-h-11 items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600 disabled:cursor-not-allowed ${variantClasses[variant]} ${widthClass} ${className}`.trim();
 }

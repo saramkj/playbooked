@@ -49,7 +49,7 @@ export function LoginPage() {
     <div className="mx-auto max-w-md space-y-6">
       <div className="space-y-3 text-center">
         <p className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-700">Log in</p>
-        <h1 className="text-4xl font-semibold text-stone-950">Welcome back</h1>
+        <h1 className="text-3xl font-semibold text-stone-950 sm:text-4xl">Welcome back</h1>
         <p className="text-base leading-7 text-stone-600">
           Use your Playbooked account to resume the protected workflow. This now talks to the real
           cookie-session auth API.

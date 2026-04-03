@@ -131,7 +131,7 @@ export function EventCreatePage() {
       <div className="space-y-8">
         <section className="space-y-3">
           <p className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-700">Events</p>
-          <h1 className="text-4xl font-semibold text-stone-950">Create event</h1>
+          <h1 className="text-3xl font-semibold text-stone-950 sm:text-4xl">Create event</h1>
         </section>
         <EmptyState
           title="You need a watchlist item first."
@@ -150,7 +150,7 @@ export function EventCreatePage() {
     <div className="space-y-8">
       <section className="space-y-3">
         <p className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-700">Events</p>
-        <h1 className="text-4xl font-semibold text-stone-950">Create event</h1>
+        <h1 className="text-3xl font-semibold text-stone-950 sm:text-4xl">Create event</h1>
         <p className="max-w-3xl text-base leading-7 text-stone-600">
           Create an event from one of your watchlist tickers. The event datetime is captured in your
           local browser time and submitted to the API as UTC.
@@ -180,7 +180,7 @@ export function EventCreatePage() {
               id="watchlist-item"
               aria-describedby={fieldErrors.watchlist_item_id ? 'watchlist-item-error' : undefined}
               aria-invalid={Boolean(fieldErrors.watchlist_item_id)}
-              className={`w-full rounded-xl border px-3 py-2.5 text-sm text-stone-900 shadow-sm outline-none transition focus:ring-2 focus:ring-amber-500 ${
+              className={`min-h-11 w-full rounded-xl border px-3 py-3 text-sm text-stone-900 shadow-sm outline-none transition focus:ring-2 focus:ring-amber-500 ${
                 fieldErrors.watchlist_item_id ? 'border-rose-300 bg-rose-50' : 'border-stone-300 bg-white'
               }`}
               value={selectedWatchlistItemId}
@@ -215,7 +215,7 @@ export function EventCreatePage() {
               id="event-type"
               aria-describedby={fieldErrors.event_type ? 'event-type-error' : undefined}
               aria-invalid={Boolean(fieldErrors.event_type)}
-              className={`w-full rounded-xl border px-3 py-2.5 text-sm text-stone-900 shadow-sm outline-none transition focus:ring-2 focus:ring-amber-500 ${
+              className={`min-h-11 w-full rounded-xl border px-3 py-3 text-sm text-stone-900 shadow-sm outline-none transition focus:ring-2 focus:ring-amber-500 ${
                 fieldErrors.event_type ? 'border-rose-300 bg-rose-50' : 'border-stone-300 bg-white'
               }`}
               value={eventType}
@@ -261,7 +261,7 @@ export function EventCreatePage() {
             <span className="text-sm font-medium text-stone-800">Notes</span>
             <textarea
               id="event-notes"
-              className="min-h-28 w-full rounded-xl border border-stone-300 bg-white px-3 py-2.5 text-sm text-stone-900 shadow-sm outline-none transition placeholder:text-stone-400 focus:ring-2 focus:ring-amber-500"
+              className="min-h-28 w-full rounded-xl border border-stone-300 bg-white px-3 py-3 text-sm text-stone-900 shadow-sm outline-none transition placeholder:text-stone-400 focus:ring-2 focus:ring-amber-500"
               placeholder="Optional notes"
               value={notes}
               onChange={(currentEvent) => setNotes(currentEvent.target.value)}
@@ -275,14 +275,14 @@ export function EventCreatePage() {
             </p>
           ) : null}
 
-          <div className="flex flex-wrap gap-3">
-            <Button disabled={isSubmitting || !selectedWatchlistItemId} type="submit">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <Button className="w-full sm:w-auto justify-center" disabled={isSubmitting || !selectedWatchlistItemId} type="submit">
               {isSubmitting ? 'Creating...' : 'Create event'}
             </Button>
             {isSubmitting ? (
-              <Button disabled variant="secondary">Back to events</Button>
+              <Button className="w-full sm:w-auto justify-center" disabled variant="secondary">Back to events</Button>
             ) : (
-              <Link className={getButtonClassName({ variant: 'secondary' })} to="/events">
+              <Link className={getButtonClassName({ className: 'w-full sm:w-auto', variant: 'secondary' })} to="/events">
                 Back to events
               </Link>
             )}

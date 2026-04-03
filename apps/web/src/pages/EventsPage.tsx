@@ -47,13 +47,13 @@ export function EventsPage() {
       <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="space-y-3">
           <p className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-700">Events</p>
-          <h1 className="text-4xl font-semibold text-stone-950">Upcoming events</h1>
-        <p className="max-w-3xl text-base leading-7 text-stone-600">
-          This feed stays focused on what is still upcoming so you can spot the next catalyst, review
-          the current setup, and jump straight into the related event detail.
-        </p>
+          <h1 className="text-3xl font-semibold text-stone-950 sm:text-4xl">Upcoming events</h1>
+          <p className="max-w-3xl text-base leading-7 text-stone-600">
+            This feed stays focused on what is still upcoming so you can spot the next catalyst, review
+            the current setup, and jump straight into the related event detail.
+          </p>
         </div>
-        <Link className={getButtonClassName({ variant: 'secondary' })} to="/events/new">
+        <Link className={getButtonClassName({ className: 'w-full sm:w-auto', variant: 'secondary' })} to="/events/new">
           Create event
         </Link>
       </section>
@@ -64,12 +64,12 @@ export function EventsPage() {
         <div className="grid gap-4 lg:grid-cols-2">
           {events.map((event) => (
             <Card key={event.event_id} className="space-y-4">
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="space-y-1">
                   <p className="text-sm font-medium uppercase tracking-[0.18em] text-stone-500">
                     {event.ticker}
                   </p>
-                  <h2 className="text-2xl font-semibold text-stone-900">
+                  <h2 className="text-xl font-semibold text-stone-900 sm:text-2xl">
                     {event.event_type.replace('_', ' ')}
                   </h2>
                 </div>
@@ -92,11 +92,11 @@ export function EventsPage() {
           title="No upcoming events yet."
           description="Create an event from your watchlist to start preparing around the next catalyst."
           action={
-            <div className="flex flex-wrap gap-3">
-              <Link className={getButtonClassName({ variant: 'secondary' })} to="/watchlist">
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              <Link className={getButtonClassName({ className: 'w-full sm:w-auto', variant: 'secondary' })} to="/watchlist">
                 Go to watchlist
               </Link>
-              <Link className={getButtonClassName({ variant: 'ghost' })} to="/events/new">
+              <Link className={getButtonClassName({ className: 'w-full sm:w-auto', variant: 'ghost' })} to="/events/new">
                 Create event
               </Link>
             </div>

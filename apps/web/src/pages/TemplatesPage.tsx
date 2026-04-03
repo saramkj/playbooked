@@ -44,7 +44,7 @@ export function TemplatesPage() {
     <div className="space-y-8">
       <section className="space-y-3">
         <p className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-700">Templates</p>
-        <h1 className="text-4xl font-semibold text-stone-950">Read-only templates</h1>
+        <h1 className="text-3xl font-semibold text-stone-950 sm:text-4xl">Read-only templates</h1>
         <p className="max-w-3xl text-base leading-7 text-stone-600">
           Templates stay checklist-only in MVP. Review them here first, then choose one from an event
           detail page when you create the event’s single playbook.
@@ -57,12 +57,12 @@ export function TemplatesPage() {
         <div className="space-y-4">
           {templates.map((template) => (
             <Card key={template.template_id} className="space-y-4">
-              <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
                 <div className="space-y-1">
                   <p className="text-sm font-semibold uppercase tracking-[0.18em] text-stone-500">
                     {template.template_type}
                   </p>
-                  <h2 className="text-2xl font-semibold text-stone-900">{template.name}</h2>
+                  <h2 className="text-xl font-semibold text-stone-900 sm:text-2xl">{template.name}</h2>
                 </div>
                 <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-stone-600">
                   v{template.version}

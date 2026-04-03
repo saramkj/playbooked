@@ -45,7 +45,7 @@ export function SignupPage() {
     <div className="mx-auto max-w-md space-y-6">
       <div className="space-y-3 text-center">
         <p className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-700">Sign up</p>
-        <h1 className="text-4xl font-semibold text-stone-950">Start building your process</h1>
+        <h1 className="text-3xl font-semibold text-stone-950 sm:text-4xl">Start building your process</h1>
         <p className="text-base leading-7 text-stone-600">
           Create an investor account to enter the protected Playbooked workspace. Admin access remains
           seed/manual only.

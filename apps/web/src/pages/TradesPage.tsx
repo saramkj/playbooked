@@ -64,7 +64,7 @@ export function TradesPage() {
     <div className="space-y-8">
       <section className="space-y-3">
         <p className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-700">Trades</p>
-        <h1 className="text-4xl font-semibold text-stone-950">Paper trades</h1>
+        <h1 className="text-3xl font-semibold text-stone-950 sm:text-4xl">Paper trades</h1>
         <p className="max-w-3xl text-base leading-7 text-stone-600">
           Review every paper trade here and open any one to save the plan, move it through the lifecycle,
           and see the current status clearly.
@@ -76,7 +76,7 @@ export function TradesPage() {
           title="No paper trades yet."
           description="Create a planned paper trade from an event detail page after the playbook passes the Process Gate."
           action={
-            <Link className={getButtonClassName({ variant: 'secondary' })} to="/events">
+            <Link className={getButtonClassName({ className: 'w-full sm:w-auto', variant: 'secondary' })} to="/events">
               Go to events
             </Link>
           }
@@ -85,10 +85,10 @@ export function TradesPage() {
         <div className="space-y-4">
           {trades.map((trade) => (
             <Card key={trade.paper_trade_id} className="space-y-3">
-              <div className="flex items-center justify-between gap-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-sm text-stone-500">{trade.ticker}</p>
-                  <h2 className="text-2xl font-semibold text-stone-900">Paper trade</h2>
+                  <h2 className="text-xl font-semibold text-stone-900 sm:text-2xl">Paper trade</h2>
                 </div>
                 <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-amber-800">
                   {trade.status}

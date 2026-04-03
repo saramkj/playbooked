@@ -387,7 +387,7 @@ export function EventDetailPage() {
       <div className="space-y-6">
         <section className="space-y-3">
           <p className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-700">Event detail</p>
-          <h1 className="text-4xl font-semibold text-stone-950">Event detail</h1>
+          <h1 className="text-3xl font-semibold text-stone-950 sm:text-4xl">Event detail</h1>
         </section>
         <ErrorBanner message={pageError} />
       </div>
@@ -399,7 +399,7 @@ export function EventDetailPage() {
       <div className="space-y-6">
         <section className="space-y-3">
           <p className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-700">Event detail</p>
-          <h1 className="text-4xl font-semibold text-stone-950">Event not found</h1>
+          <h1 className="text-3xl font-semibold text-stone-950 sm:text-4xl">Event not found</h1>
         </section>
         <EmptyState
           title="Event not found."
@@ -413,7 +413,7 @@ export function EventDetailPage() {
     <div className="space-y-8">
       <section className="space-y-3">
         <p className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-700">Event detail</p>
-        <h1 className="text-4xl font-semibold text-stone-950">{detail.watchlist_item.ticker}</h1>
+        <h1 className="text-3xl font-semibold text-stone-950 sm:text-4xl">{detail.watchlist_item.ticker}</h1>
         <p className="max-w-3xl text-base leading-7 text-stone-600">
           Manage the event, complete the playbook, and use the Process Gate panel to decide whether a
           planned paper trade can be created yet.
@@ -490,7 +490,7 @@ export function EventDetailPage() {
 
         <div className="space-y-6">
           <Card className="space-y-4">
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <p className="text-sm text-stone-500">Playbook panel</p>
                 <h2 className="mt-1 text-2xl font-semibold text-stone-950">Template-backed playbook</h2>
@@ -525,7 +525,7 @@ export function EventDetailPage() {
                       id="template-picker"
                       aria-describedby={playbookFieldErrors.template_id ? 'template-picker-error' : undefined}
                       aria-invalid={Boolean(playbookFieldErrors.template_id)}
-                      className={`w-full rounded-xl border px-3 py-2.5 text-sm text-stone-900 shadow-sm outline-none transition focus:ring-2 focus:ring-amber-500 ${
+                      className={`min-h-11 w-full rounded-xl border px-3 py-3 text-sm text-stone-900 shadow-sm outline-none transition focus:ring-2 focus:ring-amber-500 ${
                         playbookFieldErrors.template_id ? 'border-rose-300 bg-rose-50' : 'border-stone-300 bg-white'
                       }`}
                       value={selectedTemplateId}
@@ -572,6 +572,7 @@ export function EventDetailPage() {
                     </div>
                   ) : null}
                   <Button
+                    className="w-full sm:w-auto justify-center"
                     disabled={isCreatingPlaybook || !selectedTemplate}
                     onClick={() => void handleCreatePlaybook()}
                   >
@@ -601,7 +602,7 @@ export function EventDetailPage() {
                     id="playbook-thesis"
                     aria-describedby={playbookFieldErrors.thesis ? 'playbook-thesis-error' : undefined}
                     aria-invalid={Boolean(playbookFieldErrors.thesis)}
-                    className={`min-h-36 w-full rounded-xl border px-3 py-2.5 text-sm text-stone-900 shadow-sm outline-none transition placeholder:text-stone-400 focus:ring-2 focus:ring-amber-500 ${
+                    className={`min-h-36 w-full rounded-xl border px-3 py-3 text-sm text-stone-900 shadow-sm outline-none transition placeholder:text-stone-400 focus:ring-2 focus:ring-amber-500 ${
                       playbookFieldErrors.thesis ? 'border-rose-300 bg-rose-50' : 'border-stone-300 bg-white'
                     }`}
                     disabled={playbook.is_locked || isSavingPlaybook}
@@ -625,7 +626,7 @@ export function EventDetailPage() {
                       playbookFieldErrors.key_metrics ? 'playbook-key-metrics-error' : null,
                     ].filter(Boolean).join(' ')}
                     aria-invalid={Boolean(playbookFieldErrors.key_metrics)}
-                    className={`w-full rounded-xl border px-3 py-2.5 text-sm text-stone-900 shadow-sm outline-none transition placeholder:text-stone-400 focus:ring-2 focus:ring-amber-500 ${
+                    className={`min-h-11 w-full rounded-xl border px-3 py-3 text-sm text-stone-900 shadow-sm outline-none transition placeholder:text-stone-400 focus:ring-2 focus:ring-amber-500 ${
                       playbookFieldErrors.key_metrics ? 'border-rose-300 bg-rose-50' : 'border-stone-300 bg-white'
                     }`}
                     disabled={playbook.is_locked || isSavingPlaybook}
@@ -647,7 +648,7 @@ export function EventDetailPage() {
                     id="playbook-invalidation"
                     aria-describedby={playbookFieldErrors.invalidation_rule ? 'playbook-invalidation-error' : undefined}
                     aria-invalid={Boolean(playbookFieldErrors.invalidation_rule)}
-                    className={`min-h-28 w-full rounded-xl border px-3 py-2.5 text-sm text-stone-900 shadow-sm outline-none transition placeholder:text-stone-400 focus:ring-2 focus:ring-amber-500 ${
+                    className={`min-h-28 w-full rounded-xl border px-3 py-3 text-sm text-stone-900 shadow-sm outline-none transition placeholder:text-stone-400 focus:ring-2 focus:ring-amber-500 ${
                       playbookFieldErrors.invalidation_rule ? 'border-rose-300 bg-rose-50' : 'border-stone-300 bg-white'
                     }`}
                     disabled={playbook.is_locked || isSavingPlaybook}
@@ -668,7 +669,7 @@ export function EventDetailPage() {
                     id="playbook-max-loss"
                     aria-describedby={playbookFieldErrors.max_loss_percent ? 'playbook-max-loss-error' : undefined}
                     aria-invalid={Boolean(playbookFieldErrors.max_loss_percent)}
-                    className={`w-full rounded-xl border px-3 py-2.5 text-sm text-stone-900 shadow-sm outline-none transition placeholder:text-stone-400 focus:ring-2 focus:ring-amber-500 ${
+                    className={`min-h-11 w-full rounded-xl border px-3 py-3 text-sm text-stone-900 shadow-sm outline-none transition placeholder:text-stone-400 focus:ring-2 focus:ring-amber-500 ${
                       playbookFieldErrors.max_loss_percent ? 'border-rose-300 bg-rose-50' : 'border-stone-300 bg-white'
                     }`}
                     disabled={playbook.is_locked || isSavingPlaybook}
@@ -703,8 +704,8 @@ export function EventDetailPage() {
                   ))}
                 </fieldset>
 
-                <div className="flex flex-wrap gap-3">
-                  <Button disabled={playbook.is_locked || isSavingPlaybook} type="submit">
+                <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                  <Button className="w-full sm:w-auto justify-center" disabled={playbook.is_locked || isSavingPlaybook} type="submit">
                     {isSavingPlaybook ? 'Saving...' : 'Save playbook'}
                   </Button>
                 </div>
@@ -759,14 +760,14 @@ export function EventDetailPage() {
                 The playbook preview will show per-gate pass and fail states as soon as the event has a template-backed playbook.
               </p>
             )}
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               {detail.planned_trade_id ? (
                 <>
                   <div className="w-full rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
                     A planned trade already exists for this playbook, so another one cannot be created right now.
                   </div>
                   <Link
-                    className={getButtonClassName({ variant: 'secondary' })}
+                    className={getButtonClassName({ className: 'w-full sm:w-auto', variant: 'secondary' })}
                     to={`/trades/${detail.planned_trade_id}`}
                   >
                     View planned trade
@@ -775,6 +776,7 @@ export function EventDetailPage() {
               ) : (
                 <>
                   <Button
+                    className="w-full sm:w-auto justify-center"
                     disabled={!playbook || isCreatingTrade}
                     onClick={() => void handleCreatePaperTrade()}
                   >

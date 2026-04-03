@@ -205,7 +205,7 @@ export function WatchlistPage() {
     <div className="space-y-8">
       <section className="space-y-3">
         <p className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-700">Watchlist</p>
-        <h1 className="text-4xl font-semibold text-stone-950">Track event candidates</h1>
+        <h1 className="text-3xl font-semibold text-stone-950 sm:text-4xl">Track event candidates</h1>
         <p className="max-w-3xl text-base leading-7 text-stone-600">
           Add tickers you want to prepare around, organize them with tags, and jump straight into event
           creation when a catalyst is worth planning for.
@@ -288,12 +288,12 @@ export function WatchlistPage() {
                     </p>
                   </div>
 
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                     {isDeleting || isSaving ? (
-                      <Button disabled variant="secondary">Create event</Button>
+                      <Button className="w-full sm:w-auto justify-center" disabled variant="secondary">Create event</Button>
                     ) : (
                       <Link
-                        className={getButtonClassName({ variant: 'secondary' })}
+                        className={getButtonClassName({ className: 'w-full sm:w-auto', variant: 'secondary' })}
                         to={`/events/new?watchlist_item_id=${item.watchlist_item_id}`}
                       >
                         Create event
@@ -301,6 +301,7 @@ export function WatchlistPage() {
                     )}
                     {!isEditing ? (
                       <Button
+                        className="w-full sm:w-auto justify-center"
                         disabled={isDeleting || isSaving}
                         variant="ghost"
                         onClick={() => startEditing(item)}
@@ -309,6 +310,7 @@ export function WatchlistPage() {
                       </Button>
                     ) : null}
                     <Button
+                      className="w-full sm:w-auto justify-center"
                       disabled={isDeleting}
                       variant="ghost"
                       onClick={() => void handleDelete(item.watchlist_item_id)}
@@ -353,14 +355,16 @@ export function WatchlistPage() {
                       disabled={isSaving}
                     />
 
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                       <Button
+                        className="w-full sm:w-auto justify-center"
                         disabled={isSaving}
                         onClick={() => void handleSaveTags(item.watchlist_item_id)}
                       >
                         {isSaving ? 'Saving...' : 'Save tags'}
                       </Button>
                       <Button
+                        className="w-full sm:w-auto justify-center"
                         disabled={isSaving}
                         variant="secondary"
                         onClick={cancelEditing}

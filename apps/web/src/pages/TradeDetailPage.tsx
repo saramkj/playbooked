@@ -309,7 +309,7 @@ export function TradeDetailPage() {
       <div className="space-y-6">
         <section className="space-y-3">
           <p className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-700">Trade detail</p>
-          <h1 className="text-4xl font-semibold text-stone-950">Trade detail</h1>
+          <h1 className="text-3xl font-semibold text-stone-950 sm:text-4xl">Trade detail</h1>
         </section>
         <ErrorBanner message={pageError} />
       </div>
@@ -321,7 +321,7 @@ export function TradeDetailPage() {
       <div className="space-y-6">
         <section className="space-y-3">
           <p className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-700">Trade detail</p>
-          <h1 className="text-4xl font-semibold text-stone-950">Trade not found</h1>
+          <h1 className="text-3xl font-semibold text-stone-950 sm:text-4xl">Trade not found</h1>
         </section>
         <EmptyState
           title="Trade not found."
@@ -335,7 +335,7 @@ export function TradeDetailPage() {
     <div className="space-y-8">
       <section className="space-y-3">
         <p className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-700">Trade detail</p>
-        <h1 className="text-4xl font-semibold text-stone-950">{trade.ticker}</h1>
+        <h1 className="text-3xl font-semibold text-stone-950 sm:text-4xl">{trade.ticker}</h1>
         <p className="max-w-3xl text-base leading-7 text-stone-600">
           This page now runs the real paper-trade lifecycle for planned, open, closed, and cancelled states while
           keeping the rest of the MVP scope intact.
@@ -389,7 +389,7 @@ export function TradeDetailPage() {
                 <textarea
                   aria-describedby={fieldErrors.entry_plan ? 'trade-entry-plan-error' : undefined}
                   aria-invalid={Boolean(fieldErrors.entry_plan)}
-                  className={`min-h-24 w-full rounded-xl border px-3 py-2.5 text-sm text-stone-900 shadow-sm outline-none transition focus:ring-2 focus:ring-amber-500 ${
+                  className={`min-h-24 w-full rounded-xl border px-3 py-3 text-sm text-stone-900 shadow-sm outline-none transition focus:ring-2 focus:ring-amber-500 ${
                     fieldErrors.entry_plan ? 'border-rose-300 bg-rose-50' : 'border-stone-300 bg-white'
                   }`}
                   disabled={!isPlanEditable || isSavingPlan}
@@ -414,7 +414,7 @@ export function TradeDetailPage() {
                 <textarea
                   aria-describedby={fieldErrors.stop_rule ? 'trade-stop-rule-error' : undefined}
                   aria-invalid={Boolean(fieldErrors.stop_rule)}
-                  className={`min-h-24 w-full rounded-xl border px-3 py-2.5 text-sm text-stone-900 shadow-sm outline-none transition focus:ring-2 focus:ring-amber-500 ${
+                  className={`min-h-24 w-full rounded-xl border px-3 py-3 text-sm text-stone-900 shadow-sm outline-none transition focus:ring-2 focus:ring-amber-500 ${
                     fieldErrors.stop_rule ? 'border-rose-300 bg-rose-50' : 'border-stone-300 bg-white'
                   }`}
                   disabled={!isPlanEditable || isSavingPlan}
@@ -439,7 +439,7 @@ export function TradeDetailPage() {
                 <textarea
                   aria-describedby={fieldErrors.take_profit_rule ? 'trade-take-profit-error' : undefined}
                   aria-invalid={Boolean(fieldErrors.take_profit_rule)}
-                  className={`min-h-24 w-full rounded-xl border px-3 py-2.5 text-sm text-stone-900 shadow-sm outline-none transition focus:ring-2 focus:ring-amber-500 ${
+                  className={`min-h-24 w-full rounded-xl border px-3 py-3 text-sm text-stone-900 shadow-sm outline-none transition focus:ring-2 focus:ring-amber-500 ${
                     fieldErrors.take_profit_rule ? 'border-rose-300 bg-rose-50' : 'border-stone-300 bg-white'
                   }`}
                   disabled={!isPlanEditable || isSavingPlan}
@@ -464,7 +464,7 @@ export function TradeDetailPage() {
                 <input
                   aria-describedby={fieldErrors.position_size ? 'trade-position-size-error' : undefined}
                   aria-invalid={Boolean(fieldErrors.position_size)}
-                  className={`w-full rounded-xl border px-3 py-2.5 text-sm text-stone-900 shadow-sm outline-none transition focus:ring-2 focus:ring-amber-500 ${
+                  className={`min-h-11 w-full rounded-xl border px-3 py-3 text-sm text-stone-900 shadow-sm outline-none transition focus:ring-2 focus:ring-amber-500 ${
                     fieldErrors.position_size ? 'border-rose-300 bg-rose-50' : 'border-stone-300 bg-white'
                   }`}
                   disabled={!isPlanEditable || isSavingPlan}
@@ -488,7 +488,7 @@ export function TradeDetailPage() {
               </label>
 
               {isPlanEditable ? (
-                <Button disabled={isSavingPlan} type="submit">
+                <Button className="w-full sm:w-auto justify-center" disabled={isSavingPlan} type="submit">
                   {isSavingPlan ? 'Saving plan...' : 'Save plan'}
                 </Button>
               ) : null}
@@ -504,11 +504,11 @@ export function TradeDetailPage() {
             {showOpenConfirm ? (
               <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
                 <p className="font-semibold">Opening this trade locks your playbook. Continue?</p>
-                <div className="mt-3 flex flex-wrap gap-3">
-                  <Button disabled={isOpening} onClick={() => void handleConfirmOpen()}>
+                <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                  <Button className="w-full sm:w-auto justify-center" disabled={isOpening} onClick={() => void handleConfirmOpen()}>
                     {isOpening ? 'Opening...' : 'Continue'}
                   </Button>
-                  <Button disabled={isOpening} variant="ghost" onClick={() => setShowOpenConfirm(false)}>
+                  <Button className="w-full sm:w-auto justify-center" disabled={isOpening} variant="ghost" onClick={() => setShowOpenConfirm(false)}>
                     Cancel
                   </Button>
                 </div>
@@ -516,8 +516,8 @@ export function TradeDetailPage() {
             ) : null}
 
             {canOpen ? (
-              <div className="flex flex-wrap gap-3">
-                <Button disabled={isOpening} onClick={() => setShowOpenConfirm(true)}>
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                <Button className="w-full sm:w-auto justify-center" disabled={isOpening} onClick={() => setShowOpenConfirm(true)}>
                   Mark OPEN
                 </Button>
               </div>
@@ -536,7 +536,7 @@ export function TradeDetailPage() {
                 <input
                   aria-describedby={fieldErrors.pnl_percent ? 'trade-pnl-percent-error' : undefined}
                   aria-invalid={Boolean(fieldErrors.pnl_percent)}
-                  className={`w-full rounded-xl border px-3 py-2.5 text-sm text-stone-900 shadow-sm outline-none transition focus:ring-2 focus:ring-amber-500 ${
+                  className={`min-h-11 w-full rounded-xl border px-3 py-3 text-sm text-stone-900 shadow-sm outline-none transition focus:ring-2 focus:ring-amber-500 ${
                     fieldErrors.pnl_percent ? 'border-rose-300 bg-rose-50' : 'border-stone-300 bg-white'
                   }`}
                   disabled={!canClose || isClosing}
@@ -563,7 +563,7 @@ export function TradeDetailPage() {
               <label className="block space-y-2">
                 <span className="text-sm font-medium text-stone-800">Outcome notes</span>
                 <textarea
-                  className="min-h-24 w-full rounded-xl border border-stone-300 bg-white px-3 py-2.5 text-sm text-stone-900 shadow-sm outline-none transition focus:ring-2 focus:ring-amber-500"
+                  className="min-h-24 w-full rounded-xl border border-stone-300 bg-white px-3 py-3 text-sm text-stone-900 shadow-sm outline-none transition focus:ring-2 focus:ring-amber-500"
                   disabled={!canClose || isClosing}
                   value={form.outcome_notes}
                   onChange={(event) => setForm((current) => ({ ...current, outcome_notes: event.target.value }))}
@@ -573,7 +573,7 @@ export function TradeDetailPage() {
               <label className="block space-y-2">
                 <span className="text-sm font-medium text-stone-800">Post-mortem notes</span>
                 <textarea
-                  className="min-h-24 w-full rounded-xl border border-stone-300 bg-white px-3 py-2.5 text-sm text-stone-900 shadow-sm outline-none transition focus:ring-2 focus:ring-amber-500"
+                  className="min-h-24 w-full rounded-xl border border-stone-300 bg-white px-3 py-3 text-sm text-stone-900 shadow-sm outline-none transition focus:ring-2 focus:ring-amber-500"
                   disabled={!canClose || isClosing}
                   value={form.post_mortem_notes}
                   onChange={(event) => setForm((current) => ({ ...current, post_mortem_notes: event.target.value }))}
@@ -581,7 +581,7 @@ export function TradeDetailPage() {
               </label>
 
               {canClose ? (
-                <Button disabled={isClosing} type="submit" variant="secondary">
+                <Button className="w-full sm:w-auto justify-center" disabled={isClosing} type="submit" variant="secondary">
                   {isClosing ? 'Closing...' : 'Close trade'}
                 </Button>
               ) : (
@@ -596,7 +596,7 @@ export function TradeDetailPage() {
                 <textarea
                   aria-describedby={fieldErrors.cancel_reason ? 'trade-cancel-reason-error' : undefined}
                   aria-invalid={Boolean(fieldErrors.cancel_reason)}
-                  className={`min-h-24 w-full rounded-xl border px-3 py-2.5 text-sm text-stone-900 shadow-sm outline-none transition focus:ring-2 focus:ring-amber-500 ${
+                  className={`min-h-24 w-full rounded-xl border px-3 py-3 text-sm text-stone-900 shadow-sm outline-none transition focus:ring-2 focus:ring-amber-500 ${
                     fieldErrors.cancel_reason ? 'border-rose-300 bg-rose-50' : 'border-stone-300 bg-white'
                   }`}
                   disabled={!canCancel || isCancelling}
@@ -616,7 +616,7 @@ export function TradeDetailPage() {
                 ) : null}
               </label>
               {canCancel ? (
-                <Button disabled={isCancelling} variant="ghost" onClick={() => void handleCancelTrade()}>
+                <Button className="w-full sm:w-auto justify-center" disabled={isCancelling} variant="ghost" onClick={() => void handleCancelTrade()}>
                   {isCancelling ? 'Cancelling...' : 'Cancel trade'}
                 </Button>
               ) : (

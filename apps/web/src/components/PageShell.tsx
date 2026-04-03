@@ -21,7 +21,7 @@ function NavItem({ label, to }: { label: string; to: string }) {
     <NavLink
       to={to}
       className={({ isActive }) =>
-        `rounded-full px-3 py-2 text-sm font-medium transition ${
+        `inline-flex min-h-11 items-center justify-center rounded-full px-4 py-2 text-sm font-medium transition ${
           isActive ? 'bg-stone-950 text-stone-50' : 'text-stone-600 hover:bg-stone-100 hover:text-stone-950'
         }`
       }
@@ -75,18 +75,18 @@ export function PageShell({ children }: PageShellProps) {
       </a>
       <header className="border-b border-stone-200/80 bg-white/80 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between gap-4">
-            <Link to={isAuthenticated ? '/dashboard' : '/'} className="space-y-1">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <Link to={isAuthenticated ? '/dashboard' : '/'} className="max-w-full space-y-1">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-700">Playbooked</p>
-              <p className="text-sm text-stone-600">Paper-trading discipline, not impulse.</p>
+              <p className="max-w-md text-sm leading-6 text-stone-600">Paper-trading discipline, not impulse.</p>
             </Link>
 
             {!isAuthenticated && !isLoading ? (
-              <div className="flex items-center gap-3">
-                <Link className="text-sm font-medium text-stone-700 hover:text-stone-950" to="/login">
+              <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+                <Link className="inline-flex min-h-11 items-center justify-center text-sm font-medium text-stone-700 hover:text-stone-950" to="/login">
                   Log in
                 </Link>
-                <Link className={getButtonClassName({ variant: 'primary' })} to="/signup">
+                <Link className={getButtonClassName({ className: 'w-full sm:w-auto', variant: 'primary' })} to="/signup">
                   Sign up
                 </Link>
               </div>
@@ -94,11 +94,16 @@ export function PageShell({ children }: PageShellProps) {
           </div>
 
           {isAuthenticated ? (
-            <nav aria-label="Primary" className="flex flex-wrap items-center gap-2 border-t border-stone-200 pt-3">
+            <nav aria-label="Primary" className="flex flex-wrap items-stretch gap-2 border-t border-stone-200 pt-3">
               {authedNavItems.map((item) => (
                 <NavItem key={item.to} {...item} />
               ))}
-              <Button className="ml-auto" disabled={isLoggingOut} variant="ghost" onClick={() => void handleLogout()}>
+              <Button
+                className="w-full justify-center sm:ml-auto sm:w-auto"
+                disabled={isLoggingOut}
+                variant="ghost"
+                onClick={() => void handleLogout()}
+              >
                 {isLoggingOut ? 'Logging out...' : 'Logout'}
               </Button>
             </nav>
@@ -110,7 +115,7 @@ export function PageShell({ children }: PageShellProps) {
         ref={mainRef}
         id="main-content"
         tabIndex={-1}
-        className="mx-auto max-w-6xl px-4 py-10 focus:outline-none sm:px-6 lg:px-8"
+        className="mx-auto max-w-6xl px-4 py-8 focus:outline-none sm:px-6 sm:py-10 lg:px-8"
       >
         {children}
       </main>

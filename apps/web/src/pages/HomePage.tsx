@@ -43,19 +43,19 @@ export function HomePage() {
         <div className="space-y-6">
           <div className="space-y-3">
             <p className="text-sm font-semibold uppercase tracking-[0.28em] text-amber-700">Stage 7.1 scaffold</p>
-            <h1 className="max-w-3xl text-5xl font-semibold tracking-tight text-stone-950">
+            <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-stone-950 sm:text-5xl">
               Plan event-driven paper trades with discipline before you ever click create.
             </h1>
-            <p className="max-w-2xl text-lg leading-8 text-stone-600">
+            <p className="max-w-2xl text-base leading-7 text-stone-600 sm:text-lg sm:leading-8">
               Playbooked helps retail investors build a repeatable process around watchlists, events,
               fixed-field playbooks, and a hard Process Gate that blocks paper trades until the setup is ready.
             </p>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <Link className={getButtonClassName({})} to="/signup">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <Link className={getButtonClassName({ className: 'w-full sm:w-auto' })} to="/signup">
               Create an account
             </Link>
-            <Link className={getButtonClassName({ variant: 'secondary' })} to="/login">
+            <Link className={getButtonClassName({ className: 'w-full sm:w-auto', variant: 'secondary' })} to="/login">
               Log in
             </Link>
           </div>
@@ -64,7 +64,7 @@ export function HomePage() {
         <Card className="space-y-4 bg-stone-950 text-stone-50">
           <div className="space-y-2">
             <p className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-300">Demo process gate</p>
-            <h2 className="text-3xl font-semibold">Create Paper Trade</h2>
+            <h2 className="text-2xl font-semibold sm:text-3xl">Create Paper Trade</h2>
             <p className="text-sm leading-6 text-stone-300">
               The MVP hard-blocks trade creation unless G1-G5 pass. This preview is static, but the
               gating rules match the docs.
