@@ -10,6 +10,7 @@ import { calculatePassedGateCount } from "../lib/playbooks.js";
 import { ApiError } from "../lib/http.js";
 import { prisma } from "../lib/prisma.js";
 import { requireAuth } from "../middlewares/auth.js";
+import { createJsonRateLimiter } from "../middlewares/rateLimit.js";
 
 const eventsRouter = express.Router();
 
@@ -22,12 +23,18 @@ const listEventsQuerySchema = z.object({
   status: z.enum(eventStatusValues).optional(),
 });
 
+const createEventLimiter = createJsonRateLimiter({
+  windowMs: 10 * 60 * 1000,
+  limit: 30,
+  message: "Too many event write requests. Please slow down and try again shortly.",
+});
+
 const createEventSchema = z.object({
   watchlist_item_id: z.string().uuid("Select a valid watchlist item."),
   event_type: z.enum(eventTypeValues),
   event_datetime_at: z.string().trim().min(1, "Event datetime is required."),
   notes: z.string().optional(),
-});
+}).strict();
 
 type EventRecord = {
   id: string;
@@ -186,7 +193,7 @@ eventsRouter.get("/", async (req, res, next) => {
   }
 });
 
-eventsRouter.post("/", async (req, res, next) => {
+eventsRouter.post("/", createEventLimiter, async (req, res, next) => {
   try {
     const result = createEventSchema.safeParse(req.body);
 
@@ -249,7 +256,7 @@ eventsRouter.post("/", async (req, res, next) => {
   }
 });
 
-eventsRouter.get("/:event_id", async (req, res, next) => {
+export const getEventDetailHandler: express.RequestHandler = async (req, res, next) => {
   try {
     assertEventId(req.params.event_id);
 
@@ -320,7 +327,9 @@ eventsRouter.get("/:event_id", async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-});
+};
+
+eventsRouter.get("/:event_id", getEventDetailHandler);
 
 eventsRouter.post("/:event_id/mark_completed", async (req, res, next) => {
   try {

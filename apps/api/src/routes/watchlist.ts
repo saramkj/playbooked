@@ -4,19 +4,26 @@ import { z } from "zod";
 import { ApiError } from "../lib/http.js";
 import { prisma } from "../lib/prisma.js";
 import { requireAuth } from "../middlewares/auth.js";
+import { createJsonRateLimiter } from "../middlewares/rateLimit.js";
 
 const watchlistRouter = express.Router();
 
 const watchlistIdSchema = z.string().uuid();
 
+const createWatchlistLimiter = createJsonRateLimiter({
+  windowMs: 10 * 60 * 1000,
+  limit: 30,
+  message: "Too many watchlist write requests. Please slow down and try again shortly.",
+});
+
 const createWatchlistItemSchema = z.object({
   ticker: z.string(),
   tags: z.array(z.string()).default([]),
-});
+}).strict();
 
 const updateWatchlistItemSchema = z.object({
   tags: z.array(z.string()),
-});
+}).strict();
 
 type WatchlistItemRecord = {
   id: string;
@@ -127,7 +134,7 @@ watchlistRouter.get("/", async (req, res, next) => {
   }
 });
 
-watchlistRouter.post("/", async (req, res, next) => {
+export const createWatchlistItemHandler: express.RequestHandler = async (req, res, next) => {
   try {
     const result = createWatchlistItemSchema.safeParse(req.body);
 
@@ -182,7 +189,9 @@ watchlistRouter.post("/", async (req, res, next) => {
 
     next(error);
   }
-});
+};
+
+watchlistRouter.post("/", createWatchlistLimiter, createWatchlistItemHandler);
 
 watchlistRouter.put("/:watchlist_item_id", async (req, res, next) => {
   try {

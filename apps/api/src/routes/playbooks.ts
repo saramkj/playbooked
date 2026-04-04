@@ -5,6 +5,7 @@ import { parseChecklistState, parseKeyMetrics } from "../lib/playbooks.js";
 import { ApiError } from "../lib/http.js";
 import { prisma } from "../lib/prisma.js";
 import { requireAuth } from "../middlewares/auth.js";
+import { createJsonRateLimiter } from "../middlewares/rateLimit.js";
 
 const playbooksRouter = express.Router();
 
@@ -12,9 +13,15 @@ const playbookIdSchema = z.string().uuid();
 const eventIdSchema = z.string().uuid();
 const databaseUuidShape = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+const createPlaybookLimiter = createJsonRateLimiter({
+  windowMs: 10 * 60 * 1000,
+  limit: 20,
+  message: "Too many playbook creation requests. Please try again shortly.",
+});
+
 const createPlaybookSchema = z.object({
   template_id: z.string().regex(databaseUuidShape, "Choose a valid template."),
-});
+}).strict();
 
 const updatePlaybookSchema = z.object({
   thesis: z.string(),
@@ -22,7 +29,7 @@ const updatePlaybookSchema = z.object({
   invalidation_rule: z.string(),
   max_loss_percent: z.number().positive("Max loss percent must be greater than 0.").nullable(),
   checklist_state: z.record(z.string(), z.boolean()),
-});
+}).strict();
 
 function getFieldErrors(error: z.ZodError) {
   const fieldErrors: Record<string, string> = {};
@@ -112,7 +119,7 @@ function serializePlaybook(playbook: {
 
 playbooksRouter.use(requireAuth);
 
-playbooksRouter.post("/events/:event_id/playbook", async (req, res, next) => {
+playbooksRouter.post("/events/:event_id/playbook", createPlaybookLimiter, async (req, res, next) => {
   try {
     assertEventId(req.params.event_id);
 

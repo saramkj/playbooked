@@ -40,3 +40,7 @@ Manual checks to run:
 - Check header, nav, and top-page actions on mobile widths for clean wrapping, readable labels, and comfortable tap targets.
 - On Watchlist, Events, Trades, Event Detail, and Trade Detail, confirm cards remain readable and action groups stack cleanly.
 - On Login, Signup, Watchlist, Event Create, Playbook, and Trade forms, verify fields, hints, and error messages stay readable and usable without zooming out.
+
+## Security note
+
+Backend/API hardening notes now live in [SECURITY.md](/mnt/d/Uni/Portfolio/playbooked/SECURITY.md).

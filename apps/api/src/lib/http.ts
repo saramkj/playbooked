@@ -26,6 +26,16 @@ export class ApiError extends Error {
 }
 
 export const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
+  if (error instanceof SyntaxError && "body" in error) {
+    res.status(422).json({
+      message: "Validation failed.",
+      field_errors: {
+        body: "Malformed JSON request body.",
+      },
+    });
+    return;
+  }
+
   if (error instanceof ApiError) {
     res.status(error.status).json(error.body);
     return;

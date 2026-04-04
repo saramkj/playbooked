@@ -2,6 +2,7 @@ import "dotenv/config";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
+import helmet from "helmet";
 import { authRouter } from "./routes/auth.js";
 import { eventsRouter } from "./routes/events.js";
 import { env } from "./lib/env.js";
@@ -16,15 +17,22 @@ import { watchlistRouter } from "./routes/watchlist.js";
 
 export const app = express();
 
-app.set("trust proxy", env.nodeEnv === "production");
+app.set("trust proxy", env.trustProxy);
 
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  }),
+);
 app.use(
   cors({
     origin: env.webOrigin,
     credentials: true,
   }),
 );
-app.use(express.json());
+app.use(express.json({ limit: "100kb" }));
 app.use(cookieParser());
 app.use(createSessionMiddleware());
 app.use(ensureCsrfCookie);

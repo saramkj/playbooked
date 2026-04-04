@@ -56,11 +56,11 @@ export function createSessionMiddleware() {
     resave: false,
     saveUninitialized: false,
     store: getSessionStore(),
-    proxy: env.nodeEnv === "production",
+    proxy: env.isProduction,
     cookie: {
       httpOnly: true,
       sameSite: "lax",
-      secure: env.nodeEnv === "production",
+      secure: env.isProduction,
       path: "/",
       maxAge: env.sessionTtlSeconds * 1000,
     },
@@ -71,7 +71,7 @@ export function clearSessionCookie(_req: Request) {
   return {
     httpOnly: true,
     sameSite: "lax" as const,
-    secure: env.nodeEnv === "production",
+    secure: env.isProduction,
     path: "/",
   };
 }

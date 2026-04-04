@@ -1,12 +1,12 @@
 import argon2 from "argon2";
 import { Prisma, UserRole } from "@prisma/client";
 import express from "express";
-import rateLimit from "express-rate-limit";
 import { z } from "zod";
 import { clearCsrfCookie, issueCsrfCookie } from "../lib/csrf.js";
 import { env } from "../lib/env.js";
 import { ApiError } from "../lib/http.js";
 import { prisma } from "../lib/prisma.js";
+import { createJsonRateLimiter } from "../middlewares/rateLimit.js";
 import {
   clearSessionCookie,
   destroySession,
@@ -17,18 +17,22 @@ import { requireAuth } from "../middlewares/auth.js";
 
 const authRouter = express.Router();
 
-const authRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 10,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { message: "Too many attempts. Please try again later." },
+export const registerRateLimiter = createJsonRateLimiter({
+  windowMs: 10 * 60 * 1000,
+  limit: 5,
+  message: "Too many registration attempts. Please try again in 10 minutes.",
+});
+
+export const loginRateLimiter = createJsonRateLimiter({
+  windowMs: 10 * 60 * 1000,
+  limit: 5,
+  message: "Too many login attempts. Please try again in 10 minutes.",
 });
 
 const credentialsSchema = z.object({
   email: z.email("Enter a valid email address."),
   password: z.string().min(8, "Password must be at least 8 characters."),
-});
+}).strict();
 
 type AuthUserResponse = {
   user_id: string;
@@ -87,7 +91,7 @@ async function establishAuthenticatedSession(
   issueCsrfCookie(res);
 }
 
-authRouter.post("/register", authRateLimiter, async (req, res, next) => {
+authRouter.post("/register", registerRateLimiter, async (req, res, next) => {
   try {
     const result = credentialsSchema.safeParse(req.body);
 
@@ -140,7 +144,7 @@ authRouter.post("/register", authRateLimiter, async (req, res, next) => {
   }
 });
 
-authRouter.post("/login", authRateLimiter, async (req, res, next) => {
+authRouter.post("/login", loginRateLimiter, async (req, res, next) => {
   try {
     const result = credentialsSchema.safeParse(req.body);
 

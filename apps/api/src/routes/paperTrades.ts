@@ -5,15 +5,22 @@ import { ApiError } from "../lib/http.js";
 import { evaluateProcessGate } from "../lib/playbooks.js";
 import { prisma } from "../lib/prisma.js";
 import { requireAuth } from "../middlewares/auth.js";
+import { createJsonRateLimiter } from "../middlewares/rateLimit.js";
 
 const paperTradesRouter = express.Router();
 
 const paperTradeIdSchema = z.string().uuid();
 const statusValues = ["planned", "open", "closed", "cancelled"] as const;
 
+const tradeAttemptLimiter = createJsonRateLimiter({
+  windowMs: 10 * 60 * 1000,
+  limit: 20,
+  message: "Too many trade creation attempts. Please try again shortly.",
+});
+
 const attemptSchema = z.object({
   playbook_id: z.string().uuid("Choose a valid playbook."),
-});
+}).strict();
 
 const listPaperTradesQuerySchema = z.object({
   status: z.enum(statusValues).optional(),
@@ -24,23 +31,23 @@ const savePlanSchema = z.object({
   stop_rule: z.string(),
   take_profit_rule: z.string(),
   position_size: z.number().positive("Position size must be greater than 0."),
-});
+}).strict();
 
 const markOpenSchema = z.object({
   confirm: z.boolean().refine((value) => value === true, {
     message: "Confirm before opening the trade.",
   }),
-});
+}).strict();
 
 const closeTradeSchema = z.object({
   pnl_percent: z.number().min(-100, "P/L must be between -100 and 1000.").max(1000, "P/L must be between -100 and 1000."),
   outcome_notes: z.string().optional(),
   post_mortem_notes: z.string().optional(),
-});
+}).strict();
 
 const cancelTradeSchema = z.object({
   cancel_reason: z.string().trim().min(1, "Cancel reason is required."),
-});
+}).strict();
 
 function assertPaperTradeId(value: string) {
   if (!paperTradeIdSchema.safeParse(value).success) {
@@ -133,7 +140,7 @@ function getOpenValidationErrors(trade: {
 
 paperTradesRouter.use(requireAuth);
 
-paperTradesRouter.post("/paper_trades/attempt", async (req, res, next) => {
+paperTradesRouter.post("/paper_trades/attempt", tradeAttemptLimiter, async (req, res, next) => {
   try {
     const result = attemptSchema.safeParse(req.body);
 
