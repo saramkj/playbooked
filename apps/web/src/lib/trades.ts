@@ -1,4 +1,5 @@
 import { apiFetch } from './api';
+import { buildPaginationQuery, type PaginatedResponse } from './pagination';
 
 export type TradeStatus = 'planned' | 'open' | 'closed' | 'cancelled';
 
@@ -41,9 +42,7 @@ type AttemptPaperTradeResponse = {
   message: string;
 };
 
-type PaperTradesListResponse = {
-  data: PaperTradeListItem[];
-};
+type PaperTradesListResponse = PaginatedResponse<PaperTradeListItem>;
 
 type PaperTradeDetailResponse = {
   data: PaperTradeDetail;
@@ -94,15 +93,12 @@ export async function attemptPaperTrade(playbookId: string) {
   });
 }
 
-export async function listPaperTrades(status?: TradeStatus) {
-  const query = new URLSearchParams();
-
+export async function listPaperTrades(status?: TradeStatus, page = 1) {
+  const query = buildPaginationQuery(page);
   if (status) {
     query.set('status', status);
   }
-
-  const suffix = query.size > 0 ? `?${query.toString()}` : '';
-  return apiFetch<PaperTradesListResponse>(`/api/paper_trades${suffix}`);
+  return apiFetch<PaperTradesListResponse>(`/api/paper_trades?${query.toString()}`);
 }
 
 export async function getPaperTrade(paperTradeId: string) {

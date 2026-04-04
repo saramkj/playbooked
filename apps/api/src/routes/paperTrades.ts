@@ -2,6 +2,11 @@ import { PaperTradeStatus, Prisma } from "@prisma/client";
 import express from "express";
 import { z } from "zod";
 import { ApiError } from "../lib/http.js";
+import {
+  buildPaginationMeta,
+  getPaginationParams,
+  paginationQuerySchema,
+} from "../lib/pagination.js";
 import { evaluateProcessGate } from "../lib/playbooks.js";
 import { prisma } from "../lib/prisma.js";
 import { requireAuth } from "../middlewares/auth.js";
@@ -22,7 +27,7 @@ const attemptSchema = z.object({
   playbook_id: z.string().uuid("Choose a valid playbook."),
 }).strict();
 
-const listPaperTradesQuerySchema = z.object({
+const listPaperTradesQuerySchema = paginationQuerySchema.extend({
   status: z.enum(statusValues).optional(),
 });
 
@@ -338,35 +343,51 @@ paperTradesRouter.get("/paper_trades", async (req, res, next) => {
       });
     }
 
-    const trades = await prisma.paperTrade.findMany({
-      where: {
-        userId: req.auth!.userId,
-        ...(query.data.status ? { status: parsePaperTradeStatus(query.data.status) } : {}),
-      },
-      orderBy: [{ createdAt: "desc" }],
-      select: {
-        id: true,
-        playbookId: true,
-        ticker: true,
-        status: true,
-        createdAt: true,
-        openedAt: true,
-        closedAt: true,
-        cancelledAt: true,
-      },
-    });
+    const { page, page_size: pageSize } = query.data;
+    const where = {
+      userId: req.auth!.userId,
+      ...(query.data.status ? { status: parsePaperTradeStatus(query.data.status) } : {}),
+    };
+    const { skip, take } = getPaginationParams({ page, pageSize });
+
+    const [trades, totalItems] = await Promise.all([
+      prisma.paperTrade.findMany({
+        where,
+        orderBy: [{ createdAt: "desc" }],
+        select: {
+          id: true,
+          playbookId: true,
+          ticker: true,
+          status: true,
+          createdAt: true,
+          openedAt: true,
+          closedAt: true,
+          cancelledAt: true,
+        },
+        skip,
+        take,
+      }),
+      prisma.paperTrade.count({ where }),
+    ]);
 
     res.status(200).json({
-      data: trades.map((trade) => ({
-        paper_trade_id: trade.id,
-        playbook_id: trade.playbookId,
-        ticker: trade.ticker,
-        status: serializePaperTradeStatus(trade.status),
-        created_at: trade.createdAt.toISOString(),
-        opened_at: trade.openedAt ? trade.openedAt.toISOString() : null,
-        closed_at: trade.closedAt ? trade.closedAt.toISOString() : null,
-        cancelled_at: trade.cancelledAt ? trade.cancelledAt.toISOString() : null,
-      })),
+      data: {
+        items: trades.map((trade) => ({
+          paper_trade_id: trade.id,
+          playbook_id: trade.playbookId,
+          ticker: trade.ticker,
+          status: serializePaperTradeStatus(trade.status),
+          created_at: trade.createdAt.toISOString(),
+          opened_at: trade.openedAt ? trade.openedAt.toISOString() : null,
+          closed_at: trade.closedAt ? trade.closedAt.toISOString() : null,
+          cancelled_at: trade.cancelledAt ? trade.cancelledAt.toISOString() : null,
+        })),
+        ...buildPaginationMeta({
+          page,
+          pageSize,
+          totalItems,
+        }),
+      },
     });
   } catch (error) {
     next(error);

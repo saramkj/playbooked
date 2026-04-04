@@ -1,4 +1,5 @@
 import { apiFetch } from './api';
+import { buildPaginationQuery, type PaginatedResponse } from './pagination';
 
 export type WatchlistItem = {
   watchlist_item_id: string;
@@ -8,9 +9,7 @@ export type WatchlistItem = {
   updated_at: string;
 };
 
-type WatchlistListResponse = {
-  data: WatchlistItem[];
-};
+type WatchlistListResponse = PaginatedResponse<WatchlistItem>;
 
 type WatchlistMutationResponse = {
   data: {
@@ -28,8 +27,9 @@ type DeleteWatchlistItemResponse = {
   message: string;
 };
 
-export async function listWatchlistItems() {
-  return apiFetch<WatchlistListResponse>('/api/watchlist_items');
+export async function listWatchlistItems(page = 1) {
+  const query = buildPaginationQuery(page);
+  return apiFetch<WatchlistListResponse>(`/api/watchlist_items?${query.toString()}`);
 }
 
 export async function createWatchlistItem(input: { ticker: string; tags: string[] }) {

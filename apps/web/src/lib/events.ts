@@ -1,4 +1,5 @@
 import { apiFetch } from './api';
+import { buildPaginationQuery, type PaginatedResponse } from './pagination';
 
 export type EventStatus = 'upcoming' | 'completed';
 export type EventType = 'earnings' | 'macro' | 'company_event' | 'other';
@@ -40,9 +41,7 @@ export type EventDetailResponse = {
   };
 };
 
-type EventsListResponse = {
-  data: EventListItem[];
-};
+type EventsListResponse = PaginatedResponse<EventListItem>;
 
 type CreateEventResponse = {
   data: {
@@ -66,8 +65,9 @@ export const eventTypeOptions: Array<{ value: EventType; label: string }> = [
   { value: 'other', label: 'Other' },
 ];
 
-export async function listEvents(status: EventStatus = 'upcoming') {
-  const query = new URLSearchParams({ status });
+export async function listEvents(status: EventStatus = 'upcoming', page = 1) {
+  const query = buildPaginationQuery(page);
+  query.set('status', status);
 
   return apiFetch<EventsListResponse>(`/api/events?${query.toString()}`);
 }

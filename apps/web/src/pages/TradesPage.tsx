@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getButtonClassName } from '../components/buttonStyles';
 import { Card } from '../components/Card';
 import { EmptyState } from '../components/EmptyState';
 import { ErrorBanner } from '../components/ErrorBanner';
 import { LoadingState } from '../components/LoadingState';
+import { PaginationControls } from '../components/PaginationControls';
 import { formatLocalDateTimeWithOffset } from '../lib/events';
 import { ApiError } from '../lib/api';
 import { listPaperTrades, type PaperTradeListItem } from '../lib/trades';
@@ -14,43 +15,38 @@ export function TradesPage() {
   const { refreshSession } = useSession();
   const [trades, setTrades] = useState<PaperTradeListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const [hasPrevPage, setHasPrevPage] = useState(false);
   const [pageError, setPageError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let isMounted = true;
+  const loadTrades = useCallback(async (targetPage = 1) => {
+    setIsLoading(true);
+    setPageError(null);
 
-    async function loadTrades() {
-      setIsLoading(true);
-      setPageError(null);
-
-      try {
-        const response = await listPaperTrades();
-
-        if (isMounted) {
-          setTrades(response.data);
-        }
-      } catch (error) {
-        if (error instanceof ApiError && error.status === 401) {
-          await refreshSession();
-          return;
-        }
-
-        if (isMounted) {
-          setPageError(error instanceof ApiError ? error.message : 'Unable to load paper trades.');
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+    try {
+      const response = await listPaperTrades(undefined, targetPage);
+      setTrades(response.data.items);
+      setPage(response.data.page);
+      setTotalPages(response.data.total_pages);
+      setHasNextPage(response.data.has_next);
+      setHasPrevPage(response.data.has_prev);
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        await refreshSession();
+        return;
       }
+
+      setPageError(error instanceof ApiError ? error.message : 'Unable to load paper trades.');
+    } finally {
+      setIsLoading(false);
     }
-
-    void loadTrades();
-
-    return () => {
-      isMounted = false;
-    };
   }, [refreshSession]);
+
+  useEffect(() => {
+    void loadTrades();
+  }, [loadTrades]);
 
   if (isLoading) {
     return <LoadingState label="Loading paper trades..." />;
@@ -107,6 +103,15 @@ export function TradesPage() {
           ))}
         </div>
       )}
+
+      <PaginationControls
+        hasNext={hasNextPage}
+        hasPrev={hasPrevPage}
+        page={page}
+        totalPages={totalPages}
+        onNext={() => void loadTrades(page + 1)}
+        onPrev={() => void loadTrades(page - 1)}
+      />
     </div>
   );
 }

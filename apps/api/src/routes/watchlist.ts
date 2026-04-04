@@ -2,6 +2,11 @@ import { Prisma } from "@prisma/client";
 import express from "express";
 import { z } from "zod";
 import { ApiError } from "../lib/http.js";
+import {
+  buildPaginationMeta,
+  getPaginationParams,
+  paginationQuerySchema,
+} from "../lib/pagination.js";
 import { prisma } from "../lib/prisma.js";
 import { requireAuth } from "../middlewares/auth.js";
 import { createJsonRateLimiter } from "../middlewares/rateLimit.js";
@@ -24,6 +29,8 @@ const createWatchlistItemSchema = z.object({
 const updateWatchlistItemSchema = z.object({
   tags: z.array(z.string()),
 }).strict();
+
+const listWatchlistQuerySchema = paginationQuerySchema;
 
 type WatchlistItemRecord = {
   id: string;
@@ -121,13 +128,38 @@ watchlistRouter.use(requireAuth);
 
 watchlistRouter.get("/", async (req, res, next) => {
   try {
-    const items = await prisma.watchlistItem.findMany({
-      where: { userId: req.auth!.userId },
-      orderBy: [{ ticker: "asc" }, { createdAt: "asc" }],
-    });
+    const query = listWatchlistQuerySchema.safeParse(req.query);
+
+    if (!query.success) {
+      throw new ApiError(422, {
+        message: "Validation failed.",
+        field_errors: getFieldErrors(query.error),
+      });
+    }
+
+    const where = { userId: req.auth!.userId };
+    const { page, page_size: pageSize } = query.data;
+    const { skip, take } = getPaginationParams({ page, pageSize });
+
+    const [items, totalItems] = await Promise.all([
+      prisma.watchlistItem.findMany({
+        where,
+        orderBy: [{ ticker: "asc" }, { createdAt: "asc" }],
+        skip,
+        take,
+      }),
+      prisma.watchlistItem.count({ where }),
+    ]);
 
     res.status(200).json({
-      data: items.map(serializeWatchlistItem),
+      data: {
+        items: items.map(serializeWatchlistItem),
+        ...buildPaginationMeta({
+          page,
+          pageSize,
+          totalItems,
+        }),
+      },
     });
   } catch (error) {
     next(error);

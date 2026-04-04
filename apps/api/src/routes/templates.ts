@@ -34,6 +34,8 @@ templatesRouter.get("/", async (_req, res, next) => {
       orderBy: [{ name: "asc" }, { version: "asc" }],
     });
 
+    res.set("Cache-Control", "private, max-age=300, must-revalidate");
+
     res.status(200).json({
       data: templates.map(serializeTemplate),
     });

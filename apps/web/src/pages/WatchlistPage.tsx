@@ -7,6 +7,7 @@ import { EmptyState } from '../components/EmptyState';
 import { ErrorBanner } from '../components/ErrorBanner';
 import { Input } from '../components/Input';
 import { LoadingState } from '../components/LoadingState';
+import { PaginationControls } from '../components/PaginationControls';
 import { SuccessBanner } from '../components/SuccessBanner';
 import { ApiError } from '../lib/api';
 import {
@@ -23,6 +24,10 @@ export function WatchlistPage() {
   const [items, setItems] = useState<WatchlistItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [pageError, setPageError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const [hasPrevPage, setHasPrevPage] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [ticker, setTicker] = useState('');
@@ -51,13 +56,17 @@ export function WatchlistPage() {
     [items],
   );
 
-  const loadWatchlist = useCallback(async () => {
+  const loadWatchlist = useCallback(async (targetPage = 1) => {
     setIsLoading(true);
     setPageError(null);
 
     try {
-      const response = await listWatchlistItems();
-      setItems(response.data);
+      const response = await listWatchlistItems(targetPage);
+      setItems(response.data.items);
+      setPage(response.data.page);
+      setTotalPages(response.data.total_pages);
+      setHasNextPage(response.data.has_next);
+      setHasPrevPage(response.data.has_prev);
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         await refreshSession();
@@ -104,7 +113,7 @@ export function WatchlistPage() {
       setTicker('');
       setTagsInput('');
       setSuccessMessage(response.message ?? 'Ticker added to your watchlist.');
-      await loadWatchlist();
+      await loadWatchlist(1);
     } catch (error) {
       if (error instanceof ApiError) {
         if (error.status === 401) {
@@ -151,7 +160,7 @@ export function WatchlistPage() {
 
       cancelEditing();
       setSuccessMessage(response.message ?? 'Tags updated.');
-      await loadWatchlist();
+      await loadWatchlist(page);
     } catch (error) {
       if (error instanceof ApiError) {
         if (error.status === 401) {
@@ -177,10 +186,9 @@ export function WatchlistPage() {
 
     try {
       const response = await deleteWatchlistItem(watchlistItemId);
-      setItems((currentItems) =>
-        currentItems.filter((item) => item.watchlist_item_id !== watchlistItemId),
-      );
       setSuccessMessage(response.message);
+      const nextPage = items.length === 1 && page > 1 ? page - 1 : page;
+      await loadWatchlist(nextPage);
 
       if (editingItemId === watchlistItemId) {
         cancelEditing();
@@ -403,6 +411,15 @@ export function WatchlistPage() {
           action={<span className="text-sm text-stone-500">Use the Add ticker form above to get started.</span>}
         />
       )}
+
+      <PaginationControls
+        hasNext={hasNextPage}
+        hasPrev={hasPrevPage}
+        page={page}
+        totalPages={totalPages}
+        onNext={() => void loadWatchlist(page + 1)}
+        onPrev={() => void loadWatchlist(page - 1)}
+      />
     </div>
   );
 }

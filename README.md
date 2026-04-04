@@ -44,3 +44,11 @@ Manual checks to run:
 ## Security note
 
 Backend/API hardening notes now live in [SECURITY.md](/mnt/d/Uni/Portfolio/playbooked/SECURITY.md).
+
+## Performance notes
+
+- Main list endpoints now use bounded server-side pagination with `page` and `page_size`, keeping payloads smaller and more predictable.
+- Watchlist, events, and paper-trade list responses now return pagination metadata so the frontend can page cleanly without loading entire collections at once.
+- `GET /api/templates` now sends a light `Cache-Control` header because templates are read-only and comparatively stable.
+- The frontend now uses route-level code splitting with `React.lazy` and `Suspense` so page code is loaded on demand.
+- Content image optimization is not a meaningful focus area here because the app does not currently depend on real content-image payloads.

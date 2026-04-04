@@ -5,6 +5,7 @@ import { Card } from '../components/Card';
 import { EmptyState } from '../components/EmptyState';
 import { ErrorBanner } from '../components/ErrorBanner';
 import { LoadingState } from '../components/LoadingState';
+import { PaginationControls } from '../components/PaginationControls';
 import { ApiError } from '../lib/api';
 import { formatLocalDateTimeWithOffset, listEvents, type EventListItem } from '../lib/events';
 import { useSession } from '../session/useSession';
@@ -13,15 +14,23 @@ export function EventsPage() {
   const { refreshSession } = useSession();
   const [events, setEvents] = useState<EventListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const [hasPrevPage, setHasPrevPage] = useState(false);
   const [pageError, setPageError] = useState<string | null>(null);
 
-  const loadEvents = useCallback(async () => {
+  const loadEvents = useCallback(async (targetPage = 1) => {
     setIsLoading(true);
     setPageError(null);
 
     try {
-      const response = await listEvents();
-      setEvents(response.data);
+      const response = await listEvents('upcoming', targetPage);
+      setEvents(response.data.items);
+      setPage(response.data.page);
+      setTotalPages(response.data.total_pages);
+      setHasNextPage(response.data.has_next);
+      setHasPrevPage(response.data.has_prev);
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         await refreshSession();
@@ -103,6 +112,15 @@ export function EventsPage() {
           }
         />
       )}
+
+      <PaginationControls
+        hasNext={hasNextPage}
+        hasPrev={hasPrevPage}
+        page={page}
+        totalPages={totalPages}
+        onNext={() => void loadEvents(page + 1)}
+        onPrev={() => void loadEvents(page - 1)}
+      />
     </div>
   );
 }

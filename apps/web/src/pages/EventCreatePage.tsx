@@ -40,16 +40,16 @@ export function EventCreatePage() {
 
     try {
       const response = await listWatchlistItems();
-      setWatchlistItems(response.data);
+      setWatchlistItems(response.data.items);
 
       if (
         prefilledWatchlistItemId &&
-        !response.data.some((item) => item.watchlist_item_id === prefilledWatchlistItemId)
+        !response.data.items.some((item) => item.watchlist_item_id === prefilledWatchlistItemId)
       ) {
         setSelectedWatchlistItemId('');
         setPageError('The linked watchlist item is no longer available. Choose another one to continue.');
-      } else if (!prefilledWatchlistItemId && response.data[0]) {
-        setSelectedWatchlistItemId(response.data[0].watchlist_item_id);
+      } else if (!prefilledWatchlistItemId && response.data.items[0]) {
+        setSelectedWatchlistItemId(response.data.items[0].watchlist_item_id);
       }
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {

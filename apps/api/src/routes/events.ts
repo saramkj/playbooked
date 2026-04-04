@@ -8,6 +8,11 @@ import express from "express";
 import { z } from "zod";
 import { calculatePassedGateCount } from "../lib/playbooks.js";
 import { ApiError } from "../lib/http.js";
+import {
+  buildPaginationMeta,
+  getPaginationParams,
+  paginationQuerySchema,
+} from "../lib/pagination.js";
 import { prisma } from "../lib/prisma.js";
 import { requireAuth } from "../middlewares/auth.js";
 import { createJsonRateLimiter } from "../middlewares/rateLimit.js";
@@ -19,7 +24,7 @@ const eventIdSchema = z.string().uuid();
 const eventTypeValues = ["earnings", "macro", "company_event", "other"] as const;
 const eventStatusValues = ["upcoming", "completed"] as const;
 
-const listEventsQuerySchema = z.object({
+const listEventsQuerySchema = paginationQuerySchema.extend({
   status: z.enum(eventStatusValues).optional(),
 });
 
@@ -169,24 +174,39 @@ eventsRouter.get("/", async (req, res, next) => {
     }
 
     const status = parseEventStatus(query.data.status ?? "upcoming");
+    const { page, page_size: pageSize } = query.data;
+    const where = {
+      userId: req.auth!.userId,
+      status,
+    };
+    const { skip, take } = getPaginationParams({ page, pageSize });
 
-    const events = await prisma.event.findMany({
-      where: {
-        userId: req.auth!.userId,
-        status,
-      },
-      include: {
-        watchlistItem: {
-          select: {
-            ticker: true,
+    const [events, totalItems] = await Promise.all([
+      prisma.event.findMany({
+        where,
+        include: {
+          watchlistItem: {
+            select: {
+              ticker: true,
+            },
           },
         },
-      },
-      orderBy: [{ eventDatetimeAt: "asc" }, { createdAt: "asc" }],
-    });
+        orderBy: [{ eventDatetimeAt: "asc" }, { createdAt: "asc" }],
+        skip,
+        take,
+      }),
+      prisma.event.count({ where }),
+    ]);
 
     res.status(200).json({
-      data: events.map(serializeEventListItem),
+      data: {
+        items: events.map(serializeEventListItem),
+        ...buildPaginationMeta({
+          page,
+          pageSize,
+          totalItems,
+        }),
+      },
     });
   } catch (error) {
     next(error);
