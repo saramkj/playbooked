@@ -93,6 +93,25 @@ function buildValidPlaybookForAttempt() {
   };
 }
 
+function createDeferred<T = void>() {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  let reject!: (reason?: unknown) => void;
+
+  const promise = new Promise<T>((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise;
+    reject = rejectPromise;
+  });
+
+  return { promise, resolve, reject };
+}
+
+function createUniqueConstraintError() {
+  return new Prisma.PrismaClientKnownRequestError("Unique constraint failed.", {
+    code: "P2002",
+    clientVersion: "test",
+  });
+}
+
 function extractCsrfToken(setCookieHeader: string | string[] | undefined) {
   const cookieValues = typeof setCookieHeader === "string" ? [setCookieHeader] : setCookieHeader;
   const cookieHeader = cookieValues?.find((cookie) => cookie.startsWith("csrf_token="));
@@ -441,6 +460,119 @@ describe("create paper trade attempt endpoint", () => {
         passedGateCount: 5,
         totalGates: 5,
         allPassed: true,
+      },
+    });
+  });
+
+  it("allows only one planned trade when two create attempts race for the same playbook", async () => {
+    const transactionGate = createDeferred<void>();
+    const firstTradeCreated = createDeferred<void>();
+    const plannedTrades: Array<{ id: string; playbookId: string; status: PaperTradeStatus }> = [];
+    const successfulAttemptLogs: string[] = [];
+    let transactionCallCount = 0;
+
+    mockPrisma.playbook.findFirst.mockImplementation(async () => ({
+      ...buildValidPlaybookForAttempt(),
+      paperTrades: [],
+    }));
+
+    mockPrisma.paperTrade.findFirst.mockImplementation(async ({ where }: { where: { playbookId: string } }) => {
+      const existingTrade = plannedTrades.find((trade) => trade.playbookId === where.playbookId) ?? null;
+
+      return existingTrade ? { id: existingTrade.id } : null;
+    });
+
+    mockPrisma.gateAttempt.create.mockResolvedValue({
+      id: "66666666-6666-4666-8666-666666666666",
+    });
+
+    mockPrisma.$transaction.mockImplementation(async (callback: (tx: {
+      paperTrade: {
+        create: (args: unknown) => Promise<{ id: string }>;
+      };
+      gateAttempt: {
+        create: (args: unknown) => Promise<{ id: string }>;
+      };
+    }) => Promise<unknown>) => {
+      transactionCallCount += 1;
+
+      if (transactionCallCount === 1) {
+        await transactionGate.promise;
+
+        const transactionClient = {
+          paperTrade: {
+            create: vi.fn().mockImplementation(async () => {
+              plannedTrades.push({
+                id: TEST_TRADE_ID,
+                playbookId: TEST_PLAYBOOK_ID,
+                status: PaperTradeStatus.PLANNED,
+              });
+              firstTradeCreated.resolve();
+
+              return { id: TEST_TRADE_ID };
+            }),
+          },
+          gateAttempt: {
+            create: vi.fn().mockImplementation(async ({ data }: { data: { createdPaperTradeId: string } }) => {
+              successfulAttemptLogs.push(data.createdPaperTradeId);
+              return { id: "77777777-7777-4777-8777-777777777777" };
+            }),
+          },
+        };
+
+        return await callback(transactionClient);
+      }
+
+      transactionGate.resolve();
+      await firstTradeCreated.promise;
+      throw createUniqueConstraintError();
+    });
+
+    const { agent, csrfToken } = await createAuthenticatedAgent();
+    const firstRequest = agent
+      .post("/api/paper_trades/attempt")
+      .set("X-CSRF-Token", csrfToken)
+      .send({ playbook_id: TEST_PLAYBOOK_ID });
+    const secondRequest = agent
+      .post("/api/paper_trades/attempt")
+      .set("X-CSRF-Token", csrfToken)
+      .send({ playbook_id: TEST_PLAYBOOK_ID });
+
+    const responses = await Promise.all([firstRequest, secondRequest]);
+    const statusCodes = responses.map((response) => response.status).sort((left, right) => left - right);
+    const successResponse = responses.find((response) => response.status === 201);
+    const conflictResponse = responses.find((response) => response.status === 409);
+
+    expect(statusCodes).toEqual([201, 409]);
+    expect(successResponse?.body).toEqual({
+      trade_id: TEST_TRADE_ID,
+      redirect_url: `/trades/${TEST_TRADE_ID}`,
+      message: "Planned trade created.",
+    });
+    expect(conflictResponse?.body).toEqual({
+      message: "Planned trade already exists.",
+      conflict_type: "planned_trade_exists",
+      planned_trade_id: TEST_TRADE_ID,
+    });
+    expect(plannedTrades).toEqual([
+      {
+        id: TEST_TRADE_ID,
+        playbookId: TEST_PLAYBOOK_ID,
+        status: PaperTradeStatus.PLANNED,
+      },
+    ]);
+    expect(successfulAttemptLogs).toEqual([TEST_TRADE_ID]);
+    expect(mockPrisma.gateAttempt.create).toHaveBeenCalledTimes(1);
+    expect(mockPrisma.gateAttempt.create).toHaveBeenCalledWith({
+      data: {
+        userId: TEST_USER_ID,
+        playbookId: TEST_PLAYBOOK_ID,
+        eventId: TEST_EVENT_ID,
+        blockedByExistingPlannedTrade: true,
+        gateResultsJson: Prisma.JsonNull,
+        passedGateCount: null,
+        totalGates: 5,
+        allPassed: false,
       },
     });
   });
