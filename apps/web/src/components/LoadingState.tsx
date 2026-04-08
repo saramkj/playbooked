@@ -7,9 +7,14 @@ type LoadingStateProps = {
 export function LoadingState({ label = 'Loading...' }: LoadingStateProps) {
   return (
     <Card>
-      <div className="flex items-center gap-3 text-sm text-stone-600">
-        <span className="h-3 w-3 animate-pulse rounded-full bg-amber-500" aria-hidden="true" />
-        <span>{label}</span>
+      <div aria-label={label} className="space-y-3">
+        <div className="skeleton-shimmer h-3 w-20 rounded-md" aria-hidden="true" />
+        <div className="skeleton-shimmer h-5 w-48 rounded-md" aria-hidden="true" />
+        <div className="skeleton-shimmer h-3 w-full max-w-xs rounded-md" aria-hidden="true" />
+        <div className="pt-2">
+          <div className="skeleton-shimmer h-8 w-full rounded-md" aria-hidden="true" />
+        </div>
+        <p className="text-sm text-[hsl(var(--muted-foreground))]">{label}</p>
       </div>
     </Card>
   );

@@ -2,10 +2,11 @@ export type ButtonVariant = 'primary' | 'secondary' | 'ghost';
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    'bg-stone-950 text-stone-50 shadow-sm hover:bg-stone-800 disabled:bg-stone-300 disabled:text-stone-500',
+    'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:opacity-90',
   secondary:
-    'border border-stone-300 bg-white text-stone-900 hover:border-stone-400 hover:bg-stone-50 disabled:border-stone-200 disabled:text-stone-400',
-  ghost: 'text-stone-700 hover:bg-stone-100 disabled:text-stone-400',
+    'border border-[hsl(var(--border))] bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] hover:bg-[hsl(var(--accent))]',
+  ghost:
+    'text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--secondary)/0.5)] hover:text-[hsl(var(--foreground))]',
 };
 
 export function getButtonClassName({
@@ -19,5 +20,5 @@ export function getButtonClassName({
 }) {
   const widthClass = fullWidth ? 'w-full justify-center' : '';
 
-  return `inline-flex min-h-11 items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600 disabled:cursor-not-allowed ${variantClasses[variant]} ${widthClass} ${className}`.trim();
+  return `inline-flex h-11 items-center justify-center gap-2 rounded-md px-6 text-sm font-medium text-center transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--background))] disabled:pointer-events-none disabled:opacity-40 ${variantClasses[variant]} ${widthClass} ${className}`.trim();
 }
