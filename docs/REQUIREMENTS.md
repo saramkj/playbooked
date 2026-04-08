@@ -127,10 +127,11 @@ Playbook fields are fixed columns:
 
 ### Playbook locking policy (locked, with unlock path)
 
-- Editable if there are no PaperTrades for it.
-- Locked if any PaperTrade exists, except:
-  - If the only existing PaperTrade is status=planned and the user cancels it, the Playbook becomes editable again.
-- If any PaperTrade is open/closed/cancelled (or multiple trades exist), Playbook remains read-only.
+- Creating a planned PaperTrade does not lock the Playbook.
+- Only one planned PaperTrade may exist per Playbook at a time.
+- The Playbook becomes locked the first time any linked PaperTrade transitions to `open`.
+- Once locked by an opened trade, the Playbook remains read-only for later `open` / `closed` / `cancelled` states tied to that opened-trade history.
+- If the only linked PaperTrade is still `planned` and the user cancels it before it ever opens, the Playbook becomes editable again.
 
 Locked edit attempts must return **409 Conflict**.
 
@@ -330,12 +331,15 @@ Acceptance criteria
 
 Story P3
 
-- As an Investor, I cannot edit a playbook once trading activity exists so that I can’t rewrite history.
+- As an Investor, I cannot edit a playbook once a linked trade opens so that I can’t rewrite history.
 
 Acceptance criteria
 
 - If playbook is locked, any edit attempt => 409 Conflict and no data changes
-- If only trade is planned and user cancels it, playbook becomes editable again
+- Creating a planned trade does not lock the playbook
+- If a linked trade transitions to open, the playbook becomes locked
+- Once locked by an opened trade, later open/closed/cancelled states keep it read-only
+- If only trade is planned and user cancels it before it ever opens, playbook becomes editable again
 - UI disables inputs when locked and shows banner
 
 ---

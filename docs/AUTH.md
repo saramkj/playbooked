@@ -84,10 +84,12 @@ For any user-owned resource (`watchlist_items`, `events`, `playbooks`, `paper_tr
 
 ## Playbook lock/unlock rules (locked for Stage 5)
 
-- Playbook is editable if **no trades exist** for it.
-- Playbook is locked if **any trade exists** (planned/open/closed/cancelled).
+- Playbook remains editable when a linked trade is still **planned**.
+- Only one **planned** trade may exist per playbook at a time.
+- Playbook locks the first time any linked trade transitions to **OPEN**.
+- Once locked by an opened trade, it remains read-only for later **open / closed / cancelled** states tied to that opened-trade history.
 - Unlock only if:
-  - the ONLY existing trade was `planned`, and the user cancels it (`planned → cancelled`)
+  - the ONLY linked trade is still `planned`, and the user cancels it before it ever opens (`planned → cancelled`)
 - Locked edit attempts must return:
   - **409** `conflict_type="playbook_locked"`
 

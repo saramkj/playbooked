@@ -170,10 +170,12 @@ Admin rule: templates cannot be deleted if referenced (delete not in MVP)
 
 ### Playbook lock/unlock rules (Stage 5 LOCKED)
 
-- Editable if no trades exist for it
-- Locked if any trade exists (planned/open/closed/cancelled)
+- Creating a planned trade does NOT lock the playbook
+- Only one planned trade may exist per playbook at a time
+- Playbook locks the first time any linked trade transitions to OPEN
+- Once locked by an opened trade, it remains read-only for later open/closed/cancelled states tied to that opened-trade history
 - Unlock only if:
-  - the ONLY existing trade was planned AND the user cancels it
+  - the ONLY linked trade is still planned AND the user cancels it before it ever opens
 - Locked edits → 409 `conflict_type="playbook_locked"`
 
 ### Paper trades

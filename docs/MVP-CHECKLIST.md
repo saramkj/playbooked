@@ -64,8 +64,11 @@ This is the prioritized build order for the MVP. Follow top to bottom.
   - [ ] Gates pass → **201** + planned trade created + GateAttempt linked
 
 - [ ] Implement playbook locking rules:
-  - [ ] Lock when any trade exists
-  - [ ] Unlock only if the _only_ trade was `planned` and it gets cancelled
+  - [ ] Do not lock when a planned trade is created
+  - [ ] Enforce one planned trade per playbook
+  - [ ] Lock the first time any linked trade transitions to `open`
+  - [ ] Keep playbook read-only for later `open` / `closed` / `cancelled` states tied to that opened-trade history
+  - [ ] Unlock only if the _only_ linked trade was still `planned` and it gets cancelled before it ever opens
 - [ ] Update UI states:
   - [ ] Disable “Create Paper Trade” when a planned trade exists
   - [ ] Show lock/unlock banners
