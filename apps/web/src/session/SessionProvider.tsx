@@ -63,8 +63,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         method: 'POST',
         body: credentials,
       });
-
-      setUser(normalizeAuthUser(response.data));
+      return { email: response.data.email };
     } finally {
       setIsLoading(false);
     }

@@ -11,7 +11,7 @@ export type SessionContextValue = {
   isAuthenticated: boolean;
   isLoading: boolean;
   signIn: (credentials: { email: string; password: string }) => Promise<void>;
-  signUp: (credentials: { email: string; password: string }) => Promise<void>;
+  signUp: (credentials: { email: string; password: string }) => Promise<{ email: string }>;
   signOut: () => Promise<void>;
   refreshSession: () => Promise<void>;
 };

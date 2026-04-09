@@ -5,13 +5,20 @@ import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { ErrorBanner } from '../components/ErrorBanner';
 import { Input } from '../components/Input';
+import { SuccessBanner } from '../components/SuccessBanner';
 import { useSession } from '../session/useSession';
+
+type LoginLocationState = {
+  email?: string;
+  successMessage?: string;
+};
 
 export function LoginPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, isLoading, signIn } = useSession();
-  const [email, setEmail] = useState('');
+  const locationState = (location.state as LoginLocationState | null) ?? null;
+  const [email, setEmail] = useState(locationState?.email ?? '');
   const [password, setPassword] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -57,6 +64,9 @@ export function LoginPage() {
       </div>
 
       <Card className="space-y-4">
+        {locationState?.successMessage ? (
+          <SuccessBanner message={locationState.successMessage} title="Account created" />
+        ) : null}
         {formError ? <ErrorBanner message={formError} title="Unable to log in" /> : null}
 
         <form className="space-y-4" onSubmit={handleSubmit}>

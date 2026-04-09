@@ -27,8 +27,14 @@ export function SignupPage() {
     setFormError(null);
 
     try {
-      await signUp({ email, password });
-      navigate('/dashboard');
+      const result = await signUp({ email, password });
+      navigate('/login', {
+        replace: true,
+        state: {
+          email: result.email,
+          successMessage: 'Account created. Log in to continue.',
+        },
+      });
     } catch (error) {
       if (error instanceof ApiError) {
         setFieldErrors(error.fieldErrors ?? {});
