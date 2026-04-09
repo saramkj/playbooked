@@ -38,7 +38,7 @@ export const env = {
   nodeEnv,
   isProduction: nodeEnv === "production",
   isTest: nodeEnv === "test",
-  apiPort: readNumber("API_PORT", 3000),
+  apiPort: readNumber("PORT", readNumber("API_PORT", 3000)),
   webOrigin: readRequiredProductionString("WEB_ORIGIN", "http://localhost:5173"),
   databaseUrl: readRequiredProductionString(
     "DATABASE_URL",

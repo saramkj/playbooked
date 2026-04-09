@@ -6,9 +6,18 @@ import { ensureRedisConnected } from "./lib/session.js";
 async function start() {
   await ensureRedisConnected();
 
-  app.listen(env.apiPort, () => {
-    console.log(`API listening on http://localhost:${env.apiPort}`);
-  });
+  const host = env.isProduction ? "0.0.0.0" : undefined;
+  const onListen = () => {
+    const displayHost = host ?? "localhost";
+    console.log(`API listening on http://${displayHost}:${env.apiPort}`);
+  };
+
+  if (host) {
+    app.listen(env.apiPort, host, onListen);
+    return;
+  }
+
+  app.listen(env.apiPort, onListen);
 }
 
 void start();
