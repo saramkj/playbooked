@@ -7,6 +7,10 @@ function isStateChangingMethod(method: string) {
   return ["POST", "PUT", "PATCH", "DELETE"].includes(method);
 }
 
+function isPublicAuthCsrfExempt(req: Request) {
+  return req.method === "POST" && ["/api/auth/register", "/api/auth/login"].includes(req.path);
+}
+
 export function ensureCsrfCookie(req: Request, res: Response, next: NextFunction) {
   if (!isStateChangingMethod(req.method) && !getCsrfCookieToken(req)) {
     issueCsrfCookie(res);
@@ -17,6 +21,11 @@ export function ensureCsrfCookie(req: Request, res: Response, next: NextFunction
 
 export function csrfProtection(req: Request, _res: Response, next: NextFunction) {
   if (!isStateChangingMethod(req.method)) {
+    next();
+    return;
+  }
+
+  if (isPublicAuthCsrfExempt(req)) {
     next();
     return;
   }
