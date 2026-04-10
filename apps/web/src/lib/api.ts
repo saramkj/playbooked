@@ -41,6 +41,16 @@ const API_ORIGIN = import.meta.env.VITE_API_ORIGIN ?? 'http://localhost:3000';
 const CSRF_COOKIE_NAME = 'csrf_token';
 const CSRF_HEADER_NAME = 'X-CSRF-Token';
 
+function buildApiUrl(path: string) {
+  const normalizedBase = API_ORIGIN.replace(/\/+$/, '');
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  const dedupedPath = normalizedBase.endsWith('/api')
+    ? normalizedPath.replace(/^\/api(?=\/|$)/, '')
+    : normalizedPath;
+
+  return `${normalizedBase}${dedupedPath}`;
+}
+
 function readCookie(name: string) {
   return document.cookie
     .split('; ')
@@ -55,7 +65,7 @@ async function ensureCsrfCookie() {
     return;
   }
 
-  await fetch(`${API_ORIGIN}/api/auth/me`, {
+  await fetch(buildApiUrl('/api/auth/me'), {
     credentials: 'include',
   });
 }
@@ -89,7 +99,7 @@ export async function apiFetch<T>(
     }
   }
 
-  const response = await fetch(`${API_ORIGIN}${path}`, {
+  const response = await fetch(buildApiUrl(path), {
     method,
     credentials: 'include',
     headers,
