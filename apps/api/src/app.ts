@@ -4,6 +4,7 @@ import cors from "cors";
 import express from "express";
 import helmet from "helmet";
 import { authRouter } from "./routes/auth.js";
+import { dashboardRouter } from "./routes/dashboard.js";
 import { eventsRouter } from "./routes/events.js";
 import { env } from "./lib/env.js";
 import { createSessionMiddleware } from "./lib/session.js";
@@ -43,6 +44,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/api/auth", authRouter);
+app.use("/api/dashboard", dashboardRouter);
 app.use("/api/templates", templatesRouter);
 app.use("/api/watchlist_items", watchlistRouter);
 app.use("/api/events", eventsRouter);
