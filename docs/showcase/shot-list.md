@@ -12,7 +12,7 @@ This is a capture plan for portfolio screenshots. The filenames below are the sa
 
 ## 1. Dashboard overview
 
-- Filename: `docs/showcase/screenshots/dashboard-weekly-stats.png`
+- Filename: `docs/showcase/screenshots/desktop/dashboard-weekly-stats.png`
 - Screen: `/dashboard`
 - What to show:
   - weekly Process score
@@ -24,7 +24,7 @@ This is a capture plan for portfolio screenshots. The filenames below are the sa
 
 ## 2. Event detail with Process Gate summary
 
-- Filename: `docs/showcase/screenshots/event-detail-process-gate.png`
+- Filename: `docs/showcase/screenshots/desktop/event-detail-process-gate.png`
 - Screen: `/events/:event_id`
 - What to show:
   - event information
@@ -36,7 +36,7 @@ This is a capture plan for portfolio screenshots. The filenames below are the sa
 
 ## 3. Playbook editing state
 
-- Filename: `docs/showcase/screenshots/playbook-edit-state.png`
+- Filename: `docs/showcase/screenshots/desktop/playbook-edit-state.png`
 - Screen: event detail with editable playbook
 - What to show:
   - thesis
@@ -49,7 +49,7 @@ This is a capture plan for portfolio screenshots. The filenames below are the sa
 
 ## 4. Gate failure response
 
-- Filename: `docs/showcase/screenshots/gate-failure-panel.png`
+- Filename: `docs/showcase/screenshots/desktop/gate-failure-panel.png`
 - Screen: event detail after a blocked trade attempt
 - What to show:
   - visible failed gates
@@ -60,7 +60,7 @@ This is a capture plan for portfolio screenshots. The filenames below are the sa
 
 ## 5. Planned trade detail
 
-- Filename: `docs/showcase/screenshots/trade-detail-open-lock.png`
+- Filename: `docs/showcase/screenshots/desktop/trade-detail-open-lock.png`
 - Screen: `/trades/:trade_id`
 - What to show:
   - planned or open trade detail
@@ -71,7 +71,7 @@ This is a capture plan for portfolio screenshots. The filenames below are the sa
 
 ## 6. Locked playbook state
 
-- Filename: `docs/showcase/screenshots/playbook-locked-after-open.png`
+- Filename: `docs/showcase/screenshots/desktop/playbook-locked-after-open.png`
 - Screen: event detail after linked trade is `open`
 - What to show:
   - disabled playbook inputs
@@ -81,7 +81,7 @@ This is a capture plan for portfolio screenshots. The filenames below are the sa
 
 ## 7. Watchlist to event workflow
 
-- Filename: `docs/showcase/screenshots/watchlist-events-entry.png`
+- Filename: `docs/showcase/screenshots/desktop/watchlist-events-entry.png`
 - Screen: `/watchlist`
 - What to show:
   - ticker rows
@@ -92,7 +92,7 @@ This is a capture plan for portfolio screenshots. The filenames below are the sa
 
 ## 8. Templates view
 
-- Filename: `docs/showcase/screenshots/templates-read-only.png`
+- Filename: `docs/showcase/screenshots/desktop/templates-read-only.png`
 - Screen: `/templates`
 - What to show:
   - one or more templates
@@ -102,7 +102,7 @@ This is a capture plan for portfolio screenshots. The filenames below are the sa
 
 ## 9. Mobile responsive proof
 
-- Filename: `docs/showcase/screenshots/mobile-event-detail.png`
+- Filename: `docs/showcase/screenshots/mobile/mobile-event-detail.png`
 - Screen: event detail on a narrow viewport
 - What to show:
   - stacked layout
@@ -112,7 +112,7 @@ This is a capture plan for portfolio screenshots. The filenames below are the sa
 
 ## 10. Optional public landing screenshot
 
-- Filename: `docs/showcase/screenshots/landing-demo-preview.png`
+- Filename: `docs/showcase/screenshots/desktop/landing-demo-preview.png`
 - Screen: `/`
 - What to show:
   - demo preview
@@ -121,13 +121,14 @@ This is a capture plan for portfolio screenshots. The filenames below are the sa
 - Why it matters:
   - useful if the showcase package needs a simple first image before the authenticated flow
 
-## Best order for a portfolio carousel
+## 11. Best order for a portfolio carousel
 
-1. `dashboard-weekly-stats.png`
-2. `event-detail-process-gate.png`
-3. `gate-failure-panel.png`
-4. `playbook-edit-state.png`
-5. `trade-detail-open-lock.png`
-6. `playbook-locked-after-open.png`
+1. `docs/showcase/screenshots/desktop/landing-demo-preview.png`
+2. `docs/showcase/screenshots/desktop/dashboard-weekly-stats.png`
+3. `docs/showcase/screenshots/desktop/event-detail-process-gate.png`
+4. `docs/showcase/screenshots/desktop/gate-failure-panel.png`
+5. `docs/showcase/screenshots/desktop/playbook-edit-state.png`
+6. `docs/showcase/screenshots/desktop/trade-detail-open-lock.png`
+7. `docs/showcase/screenshots/desktop/playbook-locked-after-open.png`
 
-That order tells the clearest story: what the app measures, how the gate works, how the user prepares, and what changes once a trade goes live.
+That order tells the clearest story: public entry point, live stats, the gate, the blocked state, the editable setup, and the lock after a trade goes live.

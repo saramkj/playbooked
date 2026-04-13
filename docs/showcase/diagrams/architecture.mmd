@@ -1,0 +1,20 @@
+flowchart LR
+  subgraph Client["Client"]
+    Browser["Browser\nReact + TS + Tailwind (Vite)"]
+  end
+
+  subgraph Render["Render (Hosting)"]
+    FE["Static Site\n(Vite build output)"]
+    API["API Server\nNode.js + TS + Express"]
+    PG["Managed Postgres\n(source of truth)"]
+    REDIS["Managed Redis\n(session store)"]
+  end
+
+  Sentry["Sentry\n(frontend + backend)"]
+
+  Browser -->|HTTPS| FE
+  Browser -->|HTTPS API calls\nCookie session + X-CSRF-Token| API
+  API -->|SQL| PG
+  API -->|sessions| REDIS
+  Browser -->|errors| Sentry
+  API -->|errors| Sentry
