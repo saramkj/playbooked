@@ -53,7 +53,7 @@ The workflow is intentionally opinionated. Templates help structure the checklis
 
 ## Screenshots
 
-These image references are wired in now so the README is ready for a final showcase pass.
+Selected screens from the live product.
 
 ### Desktop
 
@@ -64,6 +64,7 @@ These image references are wired in now so the README is ready for a final showc
 ![Playbook edit state](docs/showcase/screenshots/desktop/playbook-edit-state.png)
 ![Gate failure panel](docs/showcase/screenshots/desktop/gate-failure-panel.png)
 ![Trade detail and open lock](docs/showcase/screenshots/desktop/trade-detail-open-lock.png)
+![Playbook locked after open](docs/showcase/screenshots/desktop/playbook-locked-after-open.png)
 ![Templates read only](docs/showcase/screenshots/desktop/templates-read-only.png)
 
 ### Mobile
@@ -89,7 +90,7 @@ The important part is not just the stack list. The app’s workflow rules are en
 - planned-trade conflicts are treated as explicit state conflicts
 - session auth and CSRF protection are part of the real request flow
 
-Future README diagram reference:
+Architecture diagram:
 
 ![Architecture diagram](docs/showcase/diagrams/architecture.svg)
 
@@ -228,7 +229,7 @@ The deployment setup is intentionally simple and production-shaped: static front
 - Templates are intentionally constrained to checklist/help content rather than dynamic schemas.
 - The dashboard is weekly and process-focused by design, not a broad analytics suite.
 - The current product is centered on the investor workflow; coach/review flows are future work.
-- The README screenshot set is structured and linked, but the final image assets can still be expanded.
+- Analytics and workflow depth can be expanded further without changing the core gate-driven model.
 
 ## Compliance note
 
